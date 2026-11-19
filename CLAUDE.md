@@ -15,7 +15,7 @@
 - `apps/web` — Next.js (B2B-кабинет, появится на этапе V2)
 - `packages/shared` — zod-схемы, типы, сгенерированный API-клиент
 - `packages/db` — схема Drizzle и миграции
-- БД: PostgreSQL + PostGIS (Neon), файлы: S3-совместимый бакет (R2 или Hetzner — ADR-0006), очередь: Redis (Upstash)
+- БД: PostgreSQL + PostGIS (Neon), файлы: S3-совместимый бакет (Neon Object Storage, запасной — R2; ADR-0006, предложено), очередь: Redis (Upstash)
 
 ## Команды
 - `pnpm install` — зависимости
