@@ -10,7 +10,7 @@
 ```
 apps/mobile (Expo) ─┐
 apps/web (Next.js) ─┼─► apps/api (REST + OpenAPI) ─► Postgres+PostGIS (Neon)
-admin (Directus)  ──┘          │                    ├► R2 (документы, фото)
+admin (Directus)  ──┘          │                    ├► Object Storage (документы, фото)
                                └► Redis/BullMQ ─► workers ─► LLM/OCR, FCM/APNs, Viber/SMS
 ```
 
@@ -29,7 +29,7 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 | partners | V3: публичный API и вебхуки для CRM клиник, OAuth2 |
 
 ## Пайплайн распознавания документа
-1. Клиент: сканер (VisionKit / ML Kit) → сжатие ~1600 px → `POST /documents` → presigned URL → загрузка в R2.
+1. Клиент: сканер (VisionKit / ML Kit) → сжатие ~1600 px → `POST /documents` → presigned URL → загрузка в приватный бакет.
 2. API ставит задачу `ocr.extract` в очередь.
 3. Воркер: мультимодальная LLM со строгой JSON-схемой (zod → JSON Schema) → поля + confidence.
 4. Нормализация препаратов и вакцин по справочнику (`packages/shared/dictionaries`).
@@ -51,7 +51,7 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 | БД | Neon (PostgreSQL + PostGIS), регион EU |
 | API + воркеры | Кандидат — выделенный сервер владельца в Hetzner Falkenstein (EU); решить при первом деплое |
 | Вспомогательное | VPS владельца в Украине (adm.tools): кандидат для Directus-админки и резервных копий |
-| Файлы | Hetzner Object Storage, fsn1, приватный бакет (ADR-0006) |
+| Файлы | Neon Object Storage (Франкфурт), приватный бакет (ADR-0006) |
 | Очередь/кэш | Upstash Redis |
 | B2B-кабинет | Vercel |
 | Сборки | EAS Build / Submit / Update |
@@ -70,6 +70,6 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 - 0003 — PowerSync vs своя синхронизация — открыто, до Этапа 2
 - 0004 — Провайдер OCR/LLM — открыто, до Этапа 3
 - 0005 — MapLibre + MapTiler vs Mapbox — открыто, до Этапа 5
-- 0006 — Хранилище файлов — принято: Hetzner Object Storage, fsn1
+- 0006 — Хранилище файлов — принято: Neon Object Storage (запасной — R2)
 - 0008 — Авторизация: OTP + JWT + ротируемый refresh — принято
 - 0007 — Рендер аватара: в приложении vs на сервере — открыто, до Этапа 5b
