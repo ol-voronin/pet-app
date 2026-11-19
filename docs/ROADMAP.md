@@ -24,7 +24,7 @@
 - [x] API: Fastify, health-check, OpenAPI, генерация клиента в packages/shared
 - [x] Mobile: Expo + expo-router, development build, табы-заглушки, i18n (uk/en) — сборка dev build на устройстве за владельцем (нужен аккаунт Expo)
 - [x] Навигация MVP: три таба — Карта · Питомцы · Профиль («События» — V2)
-- [ ] Дизайн-токены и базовые компоненты UI (Button, Input, Card, ListItem, Sheet)
+- [x] Дизайн-токены и базовые компоненты UI (Button, Input, Card, ListItem, Sheet) — токены из HANDOFF.md §5 (черновик)
 - [ ] Sentry в mobile и api
 
 ## Этап 1 — Аккаунт и питомцы (неделя 3–5)

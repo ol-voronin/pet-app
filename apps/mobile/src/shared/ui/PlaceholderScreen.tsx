@@ -1,23 +1,25 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing } from './tokens';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './components/Text';
+import { useTheme } from './theme/useTheme';
 
 export function PlaceholderScreen({ title, subtitle }: { title: string; subtitle: string }) {
+  const { colors, spacing } = useTheme();
   return (
-    <View style={styles.root}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+    <View
+      style={[
+        styles.root,
+        { backgroundColor: colors.background, padding: spacing.xl, gap: spacing.sm },
+      ]}
+    >
+      <Text variant="title">{title}</Text>
+      <Text color="textMuted" style={styles.center}>
+        {subtitle}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-    backgroundColor: colors.background,
-  },
-  title: { fontSize: 24, fontWeight: '600', color: colors.text, marginBottom: spacing.sm },
-  subtitle: { fontSize: 16, color: colors.textMuted, textAlign: 'center' },
+  root: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  center: { textAlign: 'center' },
 });
