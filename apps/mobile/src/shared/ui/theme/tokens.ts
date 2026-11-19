@@ -21,7 +21,7 @@ export interface ColorTokens {
   overlay: string;
 }
 
-// Light only for MVP: HANDOFF §5 defines no dark palette yet (app.json forces light).
+// Light only: no dark theme in MVP (owner decision 19.11.2026, docs/PRD.md); app.json forces light.
 export const lightColors: ColorTokens = {
   background: palette.cream,
   surface: palette.white,
