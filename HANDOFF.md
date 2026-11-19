@@ -1,8 +1,92 @@
 # Handoff — приложение для владельцев животных (Украина)
 
-Версия 2 от 19.11.2026 (вечер). Заменяет утреннюю версию того же дня.
+Версия 3 от 19.11.2026 (поздний вечер). Дополняет версию 2: добавлен раздел «Состояние разработки» ниже.
+Разделы 0–12 — продуктовый контекст версии 2; где они устарели, это отмечено в разделе «Состояние разработки».
 Владелец идеи: Олексій (Харків), продукт и дизайн.
 Назначение: передать контекст в Claude Code без потерь.
+
+---
+
+## Состояние разработки (v3) — читать первым
+
+### Правила работы, которые владелец задал в чате
+- **«Делай сам».** Claude Code сам создаёт ветки, PR и **сам вливает свои PR в `main`, когда CI зелёный**. Не возвращать владельцу то, что можно сделать самому.
+- **Сейчас всё должно быть бесплатно.** Ничего платного не подключать и не предлагать как обязательное, пока владелец не скажет иначе.
+- Отчитываться коротко и по-русски. Не ждать долго молча: если что-то собирается дольше минуты — сказать, что происходит.
+- Ветка по умолчанию на GitHub — пока `claude/fervent-bardeen-sr8xp2` (устаревшая). Вся работа идёт в **`main`**. Владельца попросили переключить default branch на `main` в Settings → General.
+
+### Что готово (всё в `main`, CI зелёный)
+| Что | Где | PR |
+|---|---|---|
+| Монорепо pnpm 12 + Turborepo, TS 6.0.3 strict, ESLint 10, Prettier, Vitest | корень | #1, #2 |
+| CI: format · typecheck · lint · test на каждый PR | `.github/workflows/ci.yml` | #3 |
+| Neon + Drizzle, миграции `0000_postgis`, `0001_users`, `0002_auth` (применены к ветке `dev`) | `packages/db` | #4, #13 |
+| API Fastify 5: `/health`, OpenAPI 3.1, Swagger UI `/docs`, типизированный клиент (`pnpm gen:api`) | `apps/api`, `packages/shared` | #5 |
+| Мобильное приложение Expo SDK 58, expo-router, 3 таба (Карта · Питомцы · Профиль), i18n uk/en | `apps/mobile` | #6, #9 |
+| Дизайн-система по токенам §5 (только светлая тема), dev-экран «Дизайн-система» в Профиле | `apps/mobile/src/shared/ui` | #8 |
+| Синхронизация DATA_MODEL / ROADMAP / ARCHITECTURE с PRD (раздел 9 закрыт), срок MVP ≈ 21 неделя | `docs/` | #9 |
+| Решения владельца: без тёмной темы, семья Free = 2 участника, документы 20 МБ | `docs/PRD.md` | #12 |
+| Авторизация API: OTP по телефону, JWT 15 мин, refresh 60 дней с ротацией и отзывом при повторе | `apps/api/src/modules/auth`, ADR-0008 | #13 |
+| Привязка к Expo: owner `pet-app-team`, projectId `805be4a7-fafa-4188-b3f3-65b8effdd423` | `apps/mobile/app.json` | #10, #11 |
+| Подготовка деплоя на Vercel: `APP_ENV`, entry `src/index.ts`, `vercel.json` (fra1) | `apps/api` | #14 |
+
+Тестов: 65 (api 25, shared 15, db 3, mobile 22). Авторизация проверена вживую на Neon `dev`.
+
+### В работе — не закончено
+**PR #15 `fix/vercel-entry` — деплой API на Vercel (бесплатно). Не влит.**
+- Проект Vercel: `pet-app-api` (id `prj_SQcgaMTOivhIQcKfseJVddbwitg2`, команда `team_8iL2PPo1JUY7JAp1jlS3pzmp`),
+  Root Directory `apps/api`, регион функций `fra1`, Node 22, защита деплоев выключена (приложению нужен публичный URL).
+- Переменные окружения на Vercel уже заданы: `APP_ENV=staging`, `OTP_FIXED_CODE=000000`, `ENABLE_EXPERIMENTAL_COREPACK=1`,
+  `JWT_SECRET` (сгенерирован), `DATABASE_URL` (Neon `dev`, pooled). В репозитории секретов нет.
+- Production-деплой из `main` пока **падает** (там нет фиксов из PR #15). Будущий адрес: `https://pet-app-api-devvoronin-gmailcoms-projects.vercel.app`.
+- Что уже исправлено в PR #15:
+  1. «No entrypoint found which imports fastify» → Fastify создаётся прямо в `apps/api/src/index.ts`.
+  2. `ERR_MODULE_NOT_FOUND @pet-app/db/src/index.ts` → `packages/db` и `packages/shared` собираются `tsc` в `dist/`,
+     `exports`: types → `src`, runtime → `dist`; turbo собирает их перед `build/lint/test/dev` API.
+- **Текущая ошибка (preview PR #15):** `ERR_REQUIRE_ESM` — `@fastify/swagger-ui` → `@fastify/static@10` делает `require()`
+  ESM-пакета `content-disposition@3`; рантайм Vercel это не поддерживает.
+  **Следующий шаг:** не регистрировать `@fastify/swagger-ui` при `APP_ENV=staging|production` (импортировать его динамически
+  только в development) — спецификация `/docs/json` остаётся через `@fastify/swagger`. Альтернатива — Node 24 на Vercel.
+  После фикса: дождаться Ready, проверить `/health`, весь вход (`/auth/otp/request` → `/auth/otp/verify` с `000000` → `/me`),
+  влить PR #15, проверить production-адрес.
+
+### Инфраструктура и доступы
+| Сервис | Что | Стоимость сейчас |
+|---|---|---|
+| GitHub | `ol-voronin/pet-app` | 0 |
+| Neon | проект `pet-app` (`green-wind-84602753`), AWS Frankfurt, PG 17; ветки `main` (прод, не трогать) и `dev` (`br-plain-bread-balecohz`), БД `petapp`, PostGIS 3.5 | Free |
+| Vercel | проект `pet-app-api` (см. выше), Hobby | Free (только некоммерческое; перед публичным запуском — переезд) |
+| Expo | организация `pet-app-team`, проект `pet-app`; владелец залогинен в EAS на Mac | Free |
+| Hetzner (владельца, уже оплачено) | Storage Box BX11 (SSH-only, занят другим проектом), выделенный сервер в Falkenstein, проект Hetzner Cloud | 0 доп. |
+| VPS в Украине (владельца, оплачен до 23.02.2027) | adm.tools, Ubuntu 24.04, 2 CPU / 6 ГБ | 0 доп. |
+
+Токен Expo в сессию Claude Code добавить не получилось (форма не открылась у владельца). Сборки EAS владелец запускает сам
+с Mac: `npx --yes eas-cli@latest build --profile development --platform android`. Приложение смотрит в Expo Go: `npx expo start --go`.
+
+### Решения (ADR)
+- 0001 монорепо — принято · 0002 Fastify — принято · 0008 авторизация — принято
+- **0006 хранилище файлов — записано «Hetzner Object Storage», но это платно (~€6,5/мес) → пересмотреть** под «сейчас бесплатно»:
+  Cloudflare R2 (бесплатно до 10 ГБ, но нужна карта) или S3-совместимое хранилище (MinIO/Garage) на уже оплаченном VPS.
+  Код делать против S3 API, провайдер — настройкой. Нужно только к фото питомцев.
+- Открыты: 0003 синхронизация (PowerSync облако / self-hosted / своя) — до Этапа 2; 0004 провайдер OCR — до Этапа 3;
+  0005 карты — до Этапа 5; 0007 рендер аватара — до Этапа 5b.
+
+### Что устарело в разделах ниже
+- §7 «Открыто: Fastify или NestJS» — решено (Fastify). §9 — закрыт PR #9.
+- §2: макеты на claude.ai из Claude Code не открываются; в коде используются только токены §5.
+
+### Открытые вопросы к владельцу
+1. Критерий карты: импорт OSM по всей Украине, Харьков проверить вручную — согласен? (предложено, ответа нет)
+2. Кто доводит 3D-формы аватара.
+3. Sentry (последний пункт Этапа 0) — нужен бесплатный аккаунт Sentry (Developer plan) и DSN.
+4. Переключить default branch на GitHub на `main`.
+
+### Следующие шаги по порядку
+1. Закончить PR #15 (см. «В работе»), получить рабочий публичный URL API.
+2. Мобильный вход: экраны «телефон» и «код», хранение токенов в `expo-secure-store`, автообновление access-токена,
+   `EXPO_PUBLIC_API_URL` = URL из шага 1. Проверка владельцем в Expo Go кодом `000000`.
+3. Пересмотреть ADR-0006 под бесплатный вариант.
+4. Этап 1 дальше: CRUD питомцев, онбординг с двумя путями, семейный доступ (лимит Free = 2).
 
 ---
 
