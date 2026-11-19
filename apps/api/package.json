@@ -10,7 +10,8 @@
     "test": "vitest run --passWithNoTests",
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "openapi:export": "tsx src/scripts/export-openapi.ts ../../packages/shared/openapi.json"
+    "openapi:export": "tsx src/scripts/export-openapi.ts ../../packages/shared/openapi.json",
+    "build": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

@@ -10,7 +10,8 @@
     "test": "vitest run --passWithNoTests",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio",
+    "build": "tsc -p tsconfig.build.json"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
@@ -21,8 +22,16 @@
     "@neondatabase/serverless": "1.2.1",
     "drizzle-orm": "0.45.4"
   },
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
   "exports": {
-    ".": "./src/index.ts"
-  }
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ]
 }
