@@ -28,7 +28,7 @@
 - [ ] Sentry в mobile и api
 
 ## Этап 1 — Аккаунт и питомцы (неделя 3–5)
-- [ ] ADR-0006: хранилище файлов — Cloudflare R2 или Hetzner Object Storage (оба S3-совместимы)
+- [x] ADR-0006: хранилище файлов — Neon Object Storage (S3 API), запасной — Cloudflare R2
 - [ ] Auth: OTP (мок-провайдер в dev), JWT + refresh-сессии, SecureStore; способы входа в `auth_identities`
   - [x] API: `/auth/otp/request`, `/auth/otp/verify`, `/auth/refresh`, `/auth/logout`, `/me` (ADR-0008)
   - [ ] Mobile: экраны телефона и кода, SecureStore, автообновление токена
