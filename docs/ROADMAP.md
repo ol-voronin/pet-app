@@ -14,7 +14,7 @@
 ## Этап 0 — Фундамент (неделя 1–2)
 - [x] Монорепо: pnpm + Turborepo, apps/mobile, apps/api, packages/shared, packages/db
 - [x] TypeScript strict, ESLint, Prettier, общие tsconfig
-- [ ] GitHub Actions: typecheck + lint + test на PR
+- [x] GitHub Actions: typecheck + lint + test на PR
 - [ ] Neon: проект, ветка dev, PostGIS включён; Drizzle подключён, первая миграция
 - [ ] API: Fastify, health-check, OpenAPI, генерация клиента в packages/shared
 - [ ] Mobile: Expo + expo-router, development build, табы-заглушки, i18n (uk/en)
