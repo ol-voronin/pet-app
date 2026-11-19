@@ -23,4 +23,6 @@ TypeScript закреплён на **6.0.x**, а не 7.0: `typescript-eslint` 8
 
 ## Последствия
 - Корневые `pnpm typecheck|lint|test` идут через `turbo run` по всем пакетам.
+- Expo SDK 58 + Metro работают с изолированным `node_modules` pnpm: `node-linker=hoisted` не понадобился
+  (проверено `expo export` для android и ios).
 - Фильтры `pnpm -F api|mobile|db|shared` работают по имени пакета (scope `@pet-app/` можно опускать).
