@@ -7,7 +7,7 @@
 ## Стек
 - Монорепо: pnpm workspaces + Turborepo
 - `apps/mobile` — Expo (React Native, TypeScript), expo-router, TanStack Query, Zustand, expo-sqlite + Drizzle
-- `apps/api` — Node + Fastify (или NestJS — см. ADR), REST + OpenAPI, Drizzle ORM, BullMQ
+- `apps/api` — Node + Fastify (ADR-0002), REST + OpenAPI, Drizzle ORM, BullMQ
 - `apps/web` — Next.js (B2B-кабинет, появится на этапе V2)
 - `packages/shared` — zod-схемы, типы, сгенерированный API-клиент
 - `packages/db` — схема Drizzle и миграции

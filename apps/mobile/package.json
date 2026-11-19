@@ -1,0 +1,13 @@
+{
+  "name": "mobile",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Expo mobile app (placeholder until the Expo scaffold step)",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

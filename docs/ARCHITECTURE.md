@@ -62,8 +62,8 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 
 ## ADR (журнал решений)
 Файлы в `docs/adr/`. Первые решения, которые нужно зафиксировать:
-- 0001 — Монорепо pnpm + Turborepo
-- 0002 — Fastify vs NestJS для API
+- 0001 — Монорепо pnpm + Turborepo (принято)
+- 0002 — Fastify vs NestJS для API (принято: Fastify)
 - 0003 — PowerSync vs своя синхронизация
 - 0004 — Провайдер OCR/LLM
 - 0005 — MapLibre + MapTiler vs Mapbox
