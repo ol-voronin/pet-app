@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+const S3_REQUIRED = [
+  'S3_ENDPOINT',
+  'S3_REGION',
+  'S3_BUCKET',
+  'S3_ACCESS_KEY_ID',
+  'S3_SECRET_ACCESS_KEY',
+] as const;
+
 const envSchema = z
   .object({
     /**
@@ -21,8 +29,28 @@ const envSchema = z
       .string()
       .regex(/^\d{6}$/)
       .optional(),
+    /**
+     * Private file bucket, any S3-compatible provider (ADR-0006: Neon Object Storage).
+     * Optional as a group: set all of them or none (the API then runs without file uploads).
+     */
+    S3_ENDPOINT: z.url().optional(),
+    S3_REGION: z.string().min(1).optional(),
+    S3_BUCKET: z.string().min(1).optional(),
+    S3_ACCESS_KEY_ID: z.string().min(1).optional(),
+    S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    S3_FORCE_PATH_STYLE: z.stringbool().default(true),
   })
   .superRefine((env, ctx) => {
+    const missing = S3_REQUIRED.filter((name) => !env[name]);
+    if (missing.length > 0 && missing.length < S3_REQUIRED.length) {
+      for (const name of missing) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [name],
+          message: 'required when any other S3_* variable is set',
+        });
+      }
+    }
     if (env.APP_ENV === 'production' && env.OTP_FIXED_CODE) {
       ctx.addIssue({
         code: 'custom',

@@ -17,6 +17,17 @@ After changing routes or schemas run `pnpm gen:api` (from the repo root). It wri
 `packages/shared/openapi.json` and the typed client types in `packages/shared/src/api/openapi.ts`.
 A test fails if the committed spec is out of date.
 
+## File storage
+Private S3-compatible bucket (ADR-0006: Neon Object Storage). Code in `src/modules/storage`:
+`startUpload()` checks type and size and returns a signed PUT URL (10 min), `confirmUpload()` re-checks
+what landed in the bucket, `createDownloadUrl()` signs a GET (15 min). The database stores object keys only.
+
+Set all of these or none (without them the API runs without file uploads):
+`S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`
+(`S3_FORCE_PATH_STYLE` defaults to `true`). For Neon: endpoint of the branch, region `eu-central-1`,
+bucket `pet-app-files`, key id = credential `token_id`, secret = `s3_secret_access_key`
+(Neon Console → Connect → Storage). Keys live in environment secrets, never in the repository.
+
 ## Deploy (staging, free)
 Vercel Hobby, project `pet-app-api`, Root Directory `apps/api`, region `fra1` (Frankfurt, next to Neon).
 Entry point is `src/index.ts` (Vercel's Fastify preset intercepts `listen`).
