@@ -1,6 +1,6 @@
 import { healthResponseSchema } from '@pet-app/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildApp, type App } from '../../app.js';
+import { buildApp, type App } from '../../build-app.js';
 
 describe('GET /health', () => {
   let app: App;

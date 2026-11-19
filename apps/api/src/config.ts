@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 const envSchema = z
   .object({
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    /**
+     * Where this API runs. Separate from NODE_ENV, which hosts (Vercel) force to "production".
+     * `staging` = public test deployment: real infra, but dev OTP is allowed.
+     */
+    APP_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
     HOST: z.string().default('0.0.0.0'),
     PORT: z.coerce.number().int().positive().default(3000),
     APP_VERSION: z.string().default('dev'),
@@ -19,7 +23,7 @@ const envSchema = z
       .optional(),
   })
   .superRefine((env, ctx) => {
-    if (env.NODE_ENV === 'production' && env.OTP_FIXED_CODE) {
+    if (env.APP_ENV === 'production' && env.OTP_FIXED_CODE) {
       ctx.addIssue({
         code: 'custom',
         path: ['OTP_FIXED_CODE'],

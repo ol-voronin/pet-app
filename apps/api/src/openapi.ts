@@ -1,4 +1,4 @@
-import { buildApp } from './app.js';
+import { buildApp } from './build-app.js';
 import { MemoryAuthRepo } from './modules/auth/memory-repo.js';
 import { LogOtpSender } from './modules/auth/otp-sender.js';
 import { AuthService } from './modules/auth/service.js';

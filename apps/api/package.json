@@ -8,8 +8,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
-    "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
     "openapi:export": "tsx src/scripts/export-openapi.ts ../../packages/shared/openapi.json"
   },
   "devDependencies": {
