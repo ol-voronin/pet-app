@@ -11,12 +11,10 @@ import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { AuthError } from './errors.js';
+import { createAuthGuard } from './guard.js';
 import type { AuthService } from './service.js';
 
 declare module 'fastify' {
-  interface FastifyRequest {
-    auth?: { userId: string; sessionId: string };
-  }
   interface FastifyInstance {
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
@@ -44,11 +42,7 @@ export const authModule: FastifyPluginAsyncZod<{ service: AuthService }> = async
     throw err;
   });
 
-  app.decorate('authenticate', async (req: FastifyRequest) => {
-    const header = req.headers.authorization;
-    if (!header?.startsWith('Bearer ')) throw new AuthError('unauthorized');
-    req.auth = await service.authenticate(header.slice('Bearer '.length));
-  });
+  app.decorate('authenticate', createAuthGuard(service));
 
   app.post(
     '/auth/otp/request',
