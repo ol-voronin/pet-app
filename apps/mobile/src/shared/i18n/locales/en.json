@@ -1,0 +1,11 @@
+{
+  "tabs": {
+    "map": "Map",
+    "pets": "Pets",
+    "events": "Events",
+    "profile": "Profile"
+  },
+  "placeholder": {
+    "comingSoon": "Something useful is coming here soon"
+  }
+}

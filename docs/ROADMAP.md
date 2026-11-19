@@ -17,7 +17,7 @@
 - [x] GitHub Actions: typecheck + lint + test на PR
 - [x] Neon: проект, ветка dev, PostGIS включён; Drizzle подключён, первая миграция
 - [x] API: Fastify, health-check, OpenAPI, генерация клиента в packages/shared
-- [ ] Mobile: Expo + expo-router, development build, табы-заглушки, i18n (uk/en)
+- [x] Mobile: Expo + expo-router, development build, табы-заглушки, i18n (uk/en) — сборка dev build на устройстве за владельцем (нужен аккаунт Expo)
 - [ ] Дизайн-токены и базовые компоненты UI (Button, Input, Card, ListItem, Sheet)
 - [ ] Sentry в mobile и api
 
