@@ -35,10 +35,13 @@ id, user_id, kind (`privacy_policy`|`geolocation`|`marketing`), version, granted
 ## Питомцы и доступ
 
 ### pets
-id, name, species (`dog`|`cat`|`other`), breed, sex, birth_date, color, sterilized,
+id, name, species (`dog`|`cat`|`other`), breed, sex (`male`|`female`, nullable), birth_date (date), color, sterilized,
 chip_number, registry_number, tag_number, notes, hidden, created_at, updated_at, deleted_at,
-**avatar** (jsonb, nullable), **avatar_url** (nullable — готовый рендер), **photo_url** (nullable),
+**avatar** (jsonb, nullable), **avatar_key** (nullable — готовый рендер), **photo_key** (nullable),
 **hero** (`avatar`|`photo`, default `avatar`)
+
+`avatar_key` и `photo_key` — ключи объектов в приватном бакете (ADR-0006). Ссылок в БД нет: API подписывает
+ссылку при чтении. Реализовано: миграция `0003_pets` (`pets`, `pet_members`).
 
 `avatar` для MVP — только собака и кошка:
 `{ species, ears, muzzle, coat, color, render_version }`. Собирается автоматически по виду и породе,

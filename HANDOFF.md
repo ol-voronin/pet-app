@@ -21,7 +21,7 @@
 |---|---|---|
 | Монорепо pnpm 12 + Turborepo, TS 6.0.3 strict, ESLint 10, Prettier, Vitest | корень | #1, #2 |
 | CI: format · typecheck · lint · test на каждый PR | `.github/workflows/ci.yml` | #3 |
-| Neon + Drizzle, миграции `0000_postgis`, `0001_users`, `0002_auth` (применены к ветке `dev`) | `packages/db` | #4, #13 |
+| Neon + Drizzle, миграции `0000_postgis`, `0001_users`, `0002_auth`, `0003_pets` (применены к ветке `dev`) | `packages/db` | #4, #13, #21 |
 | API Fastify 5: `/health`, OpenAPI 3.1, Swagger UI `/docs`, типизированный клиент (`pnpm gen:api`) | `apps/api`, `packages/shared` | #5 |
 | Мобильное приложение Expo SDK 58, expo-router, 3 таба (Карта · Питомцы · Профиль), i18n uk/en | `apps/mobile` | #6, #9 |
 | Дизайн-система по токенам §5 (только светлая тема), dev-экран «Дизайн-система» в Профиле | `apps/mobile/src/shared/ui` | #8 |
@@ -31,8 +31,9 @@
 | Привязка к Expo: owner `pet-app-team`, projectId `805be4a7-fafa-4188-b3f3-65b8effdd423` | `apps/mobile/app.json` | #10, #11 |
 | Подготовка деплоя на Vercel: `APP_ENV`, entry `src/index.ts`, `vercel.json` (fra1) | `apps/api` | #14 |
 | Хранилище файлов: политика (типы, 20 МБ), ключи объектов, подписанные ссылки S3, конфиг `S3_*`. Роутов пока нет — появятся с CRUD питомцев | `apps/api/src/modules/storage`, `packages/shared/src/files` | #20 |
+| Питомцы API: `/pets` CRUD, фото в два шага (подписанная ссылка → подтверждение), роли owner / editor / viewer, мягкое удаление | `apps/api/src/modules/pets`, `packages/shared/src/pets` | #21 |
 
-Тестов: 85 (api 42, shared 18, db 3, mobile 22). Авторизация проверена вживую на Neon `dev`.
+Тестов: 112 (api 65, shared 18, db 7, mobile 22). Авторизация и питомцы проверены вживую на Neon `dev`.
 Хранилище вживую не проверено: приватный бакет `pet-app-files` на ветке `dev` создан, ключей доступа ещё нет
 (владелец: Neon Console → Connect → Storage → в секреты окружения как `S3_*`, см. `apps/api/README.md`).
 
@@ -86,7 +87,7 @@
 1. Закончить PR #15 (см. «В работе»), получить рабочий публичный URL API.
 2. Мобильный вход: экраны «телефон» и «код», хранение токенов в `expo-secure-store`, автообновление access-токена,
    `EXPO_PUBLIC_API_URL` = URL из шага 1. Проверка владельцем в Expo Go кодом `000000`.
-3. Этап 1 дальше: CRUD питомцев, онбординг с двумя путями, семейный доступ (лимит Free = 2).
+3. Этап 1 дальше: экраны питомцев в приложении (API готов), онбординг с двумя путями, семейный доступ (лимит Free = 2).
 
 ---
 

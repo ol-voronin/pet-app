@@ -11,12 +11,16 @@ import {
 import { authModule } from './modules/auth/index.js';
 import type { AuthService } from './modules/auth/service.js';
 import { healthModule } from './modules/health/index.js';
+import { petsModule } from './modules/pets/index.js';
+import type { PetsService } from './modules/pets/service.js';
 
 export interface AppOptions {
   version: string;
   logger?: FastifyServerOptions['logger'];
   /** Auth is optional so lightweight tests (health) can build the app without storage. */
   auth?: AuthService;
+  /** Pets routes; need `auth` for the signed-in user. */
+  pets?: PetsService;
 }
 
 export async function buildApp(opts: AppOptions) {
@@ -39,6 +43,9 @@ export async function buildApp(opts: AppOptions) {
 
   await app.register(healthModule, { version: opts.version });
   if (opts.auth) await app.register(authModule, { service: opts.auth });
+  if (opts.auth && opts.pets) {
+    await app.register(petsModule, { service: opts.pets, auth: opts.auth });
+  }
 
   return app;
 }
