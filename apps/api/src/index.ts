@@ -1,5 +1,7 @@
 import { createDb } from '@pet-app/db';
-import { buildApp } from './build-app.js';
+import Fastify from 'fastify';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { configureApp } from './build-app.js';
 import { loadConfig } from './config.js';
 import { DrizzleAuthRepo } from './modules/auth/drizzle-repo.js';
 import { LogOtpSender } from './modules/auth/otp-sender.js';
@@ -18,11 +20,9 @@ const auth = new AuthService({
   secret: config.JWT_SECRET,
   ...(config.OTP_FIXED_CODE ? { fixedOtp: config.OTP_FIXED_CODE } : {}),
 });
-const app = await buildApp({
-  version: config.APP_VERSION,
-  logger: { level: config.LOG_LEVEL },
-  auth,
-});
+// Fastify is created here (not in build-app) because Vercel's Fastify preset looks for the file that imports it.
+const app = Fastify({ logger: { level: config.LOG_LEVEL } }).withTypeProvider<ZodTypeProvider>();
+await configureApp(app, { version: config.APP_VERSION, auth });
 sender.log = app.log;
 
 try {

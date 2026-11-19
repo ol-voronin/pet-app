@@ -19,8 +19,19 @@ export interface AppOptions {
   auth?: AuthService;
 }
 
+/** Creates a Fastify instance with our defaults. */
+export function createFastify(logger: FastifyServerOptions['logger'] = false) {
+  return Fastify({ logger }).withTypeProvider<ZodTypeProvider>();
+}
+
+export type App = ReturnType<typeof createFastify>;
+
 export async function buildApp(opts: AppOptions) {
-  const app = Fastify({ logger: opts.logger ?? false }).withTypeProvider<ZodTypeProvider>();
+  return configureApp(createFastify(opts.logger ?? false), opts);
+}
+
+/** Registers plugins and modules on an existing instance (the server entry creates it itself). */
+export async function configureApp(app: App, opts: AppOptions) {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
@@ -42,5 +53,3 @@ export async function buildApp(opts: AppOptions) {
 
   return app;
 }
-
-export type App = Awaited<ReturnType<typeof buildApp>>;
