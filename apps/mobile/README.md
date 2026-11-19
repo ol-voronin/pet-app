@@ -19,10 +19,18 @@ pnpm -F mobile start     # Metro for the installed development build
 ```
 
 ## Structure
-- `app/` — routes (expo-router). Tabs (MVP): Map (`index`), Pets, Profile. Events arrive in V2.
+- `app/` — routes (expo-router). Tabs (MVP): Map (`index`), Pets, Events (stub), Profile.
+  `app/(auth)` — sign-in (phone, then code); the root layout shows it until the user is signed in.
+- `src/features/auth` — session: tokens in SecureStore, access token refreshed before it expires,
+  signed in after a restart without network. Screens read `useSession()`.
 - `src/shared/i18n` — i18next; `uk` default, `en` second; device language via expo-localization,
   anything unsupported falls back to `uk`. UI strings only via `t('…')`.
 - `src/shared/ui` — design system (tokens + components). No hard-coded colors/spacing elsewhere.
 - `src/features/<feature>/` — feature code (api, hooks, components, store).
+
+## API URL
+The app calls `extra.apiUrl` from `app.json` (staging). To use a local API:
+`EXPO_PUBLIC_API_URL=http://<your-computer-ip>:3000 pnpm -F mobile start`.
+`metro.config.js` lets Metro read the workspace packages (`packages/*`) as TypeScript source.
 
 Bundle IDs are placeholders: `app.petapp.mobile` — change before the first store upload.
