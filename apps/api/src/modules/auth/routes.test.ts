@@ -1,6 +1,6 @@
 import { authTokensSchema, otpRequestResponseSchema } from '@pet-app/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildApp, type App } from '../../app.js';
+import { buildApp, type App } from '../../build-app.js';
 import { MemoryAuthRepo } from './memory-repo.js';
 import { LogOtpSender } from './otp-sender.js';
 import { AuthService } from './service.js';

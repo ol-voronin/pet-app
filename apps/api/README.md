@@ -16,3 +16,9 @@ Fastify 5 REST API (ADR-0002). OpenAPI 3.1 is generated from zod schemas.
 After changing routes or schemas run `pnpm gen:api` (from the repo root). It writes
 `packages/shared/openapi.json` and the typed client types in `packages/shared/src/api/openapi.ts`.
 A test fails if the committed spec is out of date.
+
+## Deploy (staging, free)
+Vercel Hobby, project `pet-app-api`, Root Directory `apps/api`, region `fra1` (Frankfurt, next to Neon).
+Entry point is `src/index.ts` (Vercel's Fastify preset intercepts `listen`).
+Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` branch), `JWT_SECRET`,
+`OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
