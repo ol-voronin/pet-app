@@ -15,7 +15,7 @@
 - [x] Монорепо: pnpm + Turborepo, apps/mobile, apps/api, packages/shared, packages/db
 - [x] TypeScript strict, ESLint, Prettier, общие tsconfig
 - [x] GitHub Actions: typecheck + lint + test на PR
-- [ ] Neon: проект, ветка dev, PostGIS включён; Drizzle подключён, первая миграция
+- [x] Neon: проект, ветка dev, PostGIS включён; Drizzle подключён, первая миграция
 - [ ] API: Fastify, health-check, OpenAPI, генерация клиента в packages/shared
 - [ ] Mobile: Expo + expo-router, development build, табы-заглушки, i18n (uk/en)
 - [ ] Дизайн-токены и базовые компоненты UI (Button, Input, Card, ListItem, Sheet)
