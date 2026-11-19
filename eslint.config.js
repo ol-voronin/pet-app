@@ -28,5 +28,19 @@ export default tseslint.config(
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     ...tseslint.configs.disableTypeChecked,
   },
+  {
+    // CLAUDE.md: colors only from design tokens. Raw hex/rgb allowed only inside the theme folder.
+    files: ['apps/mobile/**/*.{ts,tsx}'],
+    ignores: ['apps/mobile/src/shared/ui/theme/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value=/^(#[0-9a-fA-F]{3,8}|rgba?\\(.*\\))$/]',
+          message: 'Use color tokens from useTheme() instead of hard-coded colors.',
+        },
+      ],
+    },
+  },
   prettier,
 );
