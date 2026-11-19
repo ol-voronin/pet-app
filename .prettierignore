@@ -1,0 +1,10 @@
+pnpm-lock.yaml
+dist
+build
+coverage
+.turbo
+.expo
+
+# Hand-written docs: keep author formatting
+*.md
+.claude
