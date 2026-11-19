@@ -37,7 +37,7 @@ admin (Directus)  ──┘          │                    ├► Object Storag
 6. Хранить: оригинал, сырой ответ модели, версию промпта/модели, итоговые записи.
 
 ## Мобильное приложение
-- expo-router (табы MVP: Карта · Питомцы · Профиль; «События» — V2), TanStack Query, Zustand.
+- expo-router (табы MVP: Карта · Питомцы · Мероприятия · Профиль; «Мероприятия» — заглушка «скоро», события — V2), TanStack Query, Zustand.
 - Дизайн-система в `src/shared/ui`, токены — `HANDOFF.md` §5 (черновик, светлая тема).
 - Офлайн: локальная SQLite; синхронизация — открытое решение ADR-0003 (PowerSync облако / self-hosted / своя).
 - Карта: кандидат — @maplibre/maplibre-react-native + тайлы MapTiler (открытое решение ADR-0005); точки — из PostGIS.

@@ -2,10 +2,14 @@
   "tabs": {
     "map": "Map",
     "pets": "Pets",
+    "events": "Events",
     "profile": "Profile"
   },
   "placeholder": {
     "comingSoon": "Something useful is coming here soon"
+  },
+  "events": {
+    "comingSoon": "Events for you and your pet are coming here soon"
   },
   "common": {
     "close": "Close"
