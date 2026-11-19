@@ -31,7 +31,7 @@
 - [x] ADR-0006: хранилище файлов — Neon Object Storage (S3 API), запасной — Cloudflare R2
 - [ ] Auth: OTP (мок-провайдер в dev), JWT + refresh-сессии, SecureStore; способы входа в `auth_identities`
   - [x] API: `/auth/otp/request`, `/auth/otp/verify`, `/auth/refresh`, `/auth/logout`, `/me` (ADR-0008)
-  - [ ] Mobile: экраны телефона и кода, SecureStore, автообновление токена
+  - [x] Mobile: экраны телефона и кода, SecureStore, автообновление токена, выход в «Профиле»
   - [ ] Реальная доставка кода: Viber → SMS (провайдер — выбрать)
 - [ ] Sign in with Apple / Google
 - [ ] Онбординг «Добавьте питомца»: два равных пути — скан (заглушка до Этапа 3) или ручная форма; пропуск в один тап

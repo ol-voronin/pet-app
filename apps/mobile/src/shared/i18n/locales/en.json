@@ -11,6 +11,37 @@
   "events": {
     "comingSoon": "Events for you and your pet are coming here soon"
   },
+  "auth": {
+    "phone": {
+      "title": "Sign in",
+      "subtitle": "Enter your phone number and we will send you a sign-in code.",
+      "label": "Phone number",
+      "placeholder": "+380 67 123 45 67",
+      "submit": "Get the code"
+    },
+    "code": {
+      "title": "Enter the code",
+      "subtitle": "We sent a code to {{phone}}",
+      "label": "Code from the message",
+      "submit": "Sign in",
+      "resend": "Send the code again",
+      "resendIn": "Send again in {{seconds}} s",
+      "changePhone": "Change number"
+    },
+    "errors": {
+      "invalidPhone": "Check the number: a Ukrainian mobile is needed, e.g. 067 123 45 67",
+      "invalidCode": "Wrong code. Try again",
+      "codeExpired": "The code has expired. Request a new one",
+      "tooManyAttempts": "Too many attempts. Request a new code",
+      "tooManyRequests": "Too many requests. Try again a bit later",
+      "network": "Cannot reach the server. Check your connection and try again",
+      "unknown": "Something went wrong. Try again"
+    }
+  },
+  "profile": {
+    "phone": "Phone",
+    "signOut": "Sign out"
+  },
   "common": {
     "close": "Close"
   },

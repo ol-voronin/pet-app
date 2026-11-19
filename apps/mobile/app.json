@@ -13,12 +13,13 @@
     "android": {
       "package": "app.petapp.mobile"
     },
-    "plugins": ["expo-router", "expo-status-bar", "expo-localization"],
+    "plugins": ["expo-router", "expo-status-bar", "expo-localization", "expo-secure-store"],
     "experiments": {
       "typedRoutes": true
     },
     "owner": "pet-app-team",
     "extra": {
+      "apiUrl": "https://pet-app-api-devvoronin-gmailcoms-projects.vercel.app",
       "eas": {
         "projectId": "805be4a7-fafa-4188-b3f3-65b8effdd423"
       }
