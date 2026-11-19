@@ -10,12 +10,12 @@
 
 ## Стек
 - Монорепо: pnpm workspaces + Turborepo
-- `apps/mobile` — Expo (React Native, TypeScript), expo-router, TanStack Query, Zustand, expo-sqlite + Drizzle
+- `apps/mobile` — Expo (React Native, TypeScript), expo-router, TanStack Query, Zustand, локальная SQLite (синхронизация — ADR-0003)
 - `apps/api` — Node + Fastify (ADR-0002), REST + OpenAPI, Drizzle ORM, BullMQ
 - `apps/web` — Next.js (B2B-кабинет, появится на этапе V2)
 - `packages/shared` — zod-схемы, типы, сгенерированный API-клиент
 - `packages/db` — схема Drizzle и миграции
-- БД: PostgreSQL + PostGIS (Neon), файлы: Cloudflare R2, очередь: Redis (Upstash)
+- БД: PostgreSQL + PostGIS (Neon), файлы: S3-совместимый бакет (R2 или Hetzner — ADR-0006), очередь: Redis (Upstash)
 
 ## Команды
 - `pnpm install` — зависимости

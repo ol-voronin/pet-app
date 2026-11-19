@@ -19,7 +19,7 @@ pnpm -F mobile start     # Metro for the installed development build
 ```
 
 ## Structure
-- `app/` — routes (expo-router). Tabs: Map (`index`), Pets, Events, Profile.
+- `app/` — routes (expo-router). Tabs (MVP): Map (`index`), Pets, Profile. Events arrive in V2.
 - `src/shared/i18n` — i18next; `uk` default, `en` second; device language via expo-localization,
   anything unsupported falls back to `uk`. UI strings only via `t('…')`.
 - `src/shared/ui` — design system (tokens + components). No hard-coded colors/spacing elsewhere.

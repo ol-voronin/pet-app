@@ -17,12 +17,13 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 ## Модули API
 | Модуль | Ответственность |
 |---|---|
-| auth | OTP по телефону (Viber → SMS fallback), Apple/Google, JWT access + refresh, роли |
-| pets | Питомцы, семейный доступ (owner/editor/viewer), чип, № госреестра, вес |
-| health | Медзаписи: vaccination, treatment, visit, lab, medication, note; source + version |
-| documents | Загрузка по presigned URL, статусы, пайплайн OCR, извлечённые поля |
-| reminders | Правила-графики, планировщик, пуши |
-| places | Точки карты, гео-поиск, векторные тайлы, claim, отзывы (V2) |
+| auth | OTP по телефону (Viber → SMS fallback), Apple/Google (`auth_identities`), JWT access + refresh-сессии, роли |
+| pets | Питомцы, семейный доступ (owner/editor/viewer, приглашения по ссылке), чип, № госреестра, фото и герой «аватар / фото» |
+| avatar | Параметры аватара, автосборка по виду и породе, рендер (в приложении или на сервере — ADR-0007) |
+| health | Медзаписи: vaccination, treatment, visit, lab, medication, note, weight; source + version + история версий |
+| documents | Загрузка по presigned URL; файлы как есть (`stored`) и сканы; пайплайн OCR, извлечённые поля, лимит сканов |
+| reminders | Правила-графики и произвольные напоминания, действие по типу («Записаться» / «Сделано»), планировщик, пуши |
+| places | Точки карты, гео-поиск, тайлы; свои метки (личные / публичные) и очередь модерации; claim и отзывы (V2) |
 | events | V2: события, RSVP, билеты, чек-ин |
 | payments | V2: эквайринг (mono/WayForPay), RevenueCat webhooks, пРРО (Checkbox) |
 | partners | V3: публичный API и вебхуки для CRM клиник, OAuth2 |
@@ -36,9 +37,10 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 6. Хранить: оригинал, сырой ответ модели, версию промпта/модели, итоговые записи.
 
 ## Мобильное приложение
-- expo-router (табы: Карта · Питомцы · События · Профиль), TanStack Query, Zustand + MMKV.
-- Офлайн: expo-sqlite + Drizzle; синхронизация — PowerSync (см. ADR-0003).
-- Карта: @maplibre/maplibre-react-native, тайлы MapTiler, точки — векторные тайлы из PostGIS.
+- expo-router (табы MVP: Карта · Питомцы · Профиль; «События» — V2), TanStack Query, Zustand.
+- Дизайн-система в `src/shared/ui`, токены — `HANDOFF.md` §5 (черновик, светлая тема).
+- Офлайн: локальная SQLite; синхронизация — открытое решение ADR-0003 (PowerSync облако / self-hosted / своя).
+- Карта: кандидат — @maplibre/maplibre-react-native + тайлы MapTiler (открытое решение ADR-0005); точки — из PostGIS.
 - Пуши: expo-notifications; локальные напоминания планируются на устройстве.
 - Покупки: RevenueCat. Билеты: внешняя оплата через expo-web-browser.
 - Наблюдаемость: Sentry, PostHog (EU).
@@ -47,8 +49,8 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 | Что | Где |
 |---|---|
 | БД | Neon (PostgreSQL + PostGIS), регион EU |
-| API + воркеры | Fly.io или Render (EU) |
-| Файлы | Cloudflare R2 (приватный бакет) |
+| API + воркеры | Fly.io или Render (EU), либо свой сервер — решить при первом деплое |
+| Файлы | Приватный S3-совместимый бакет: Cloudflare R2 или Hetzner Object Storage (ADR-0006) |
 | Очередь/кэш | Upstash Redis |
 | B2B-кабинет | Vercel |
 | Сборки | EAS Build / Submit / Update |
@@ -62,8 +64,10 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 
 ## ADR (журнал решений)
 Файлы в `docs/adr/`. Первые решения, которые нужно зафиксировать:
-- 0001 — Монорепо pnpm + Turborepo (принято)
-- 0002 — Fastify vs NestJS для API (принято: Fastify)
-- 0003 — PowerSync vs своя синхронизация
-- 0004 — Провайдер OCR/LLM
-- 0005 — MapLibre + MapTiler vs Mapbox
+- 0001 — Монорепо pnpm + Turborepo — принято
+- 0002 — Fastify vs NestJS для API — принято: Fastify (подтверждено владельцем 19.11)
+- 0003 — PowerSync vs своя синхронизация — открыто, до Этапа 2
+- 0004 — Провайдер OCR/LLM — открыто, до Этапа 3
+- 0005 — MapLibre + MapTiler vs Mapbox — открыто, до Этапа 5
+- 0006 — Хранилище файлов: R2 vs Hetzner — открыто, до Этапа 1
+- 0007 — Рендер аватара: в приложении vs на сервере — открыто, до Этапа 5b
