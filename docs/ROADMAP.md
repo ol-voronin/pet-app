@@ -3,7 +3,7 @@
 Отмечать `[x]` по мере выполнения. Один пункт ≈ одна сессия Claude Code ≈ один PR.
 
 ## Неделя 0 — Подготовка (делает владелец продукта, без кода)
-- [ ] Приватный репозиторий на GitHub, в корень скопирован этот набор
+- [x] Приватный репозиторий на GitHub, в корень скопирован этот набор
 - [ ] Установлены Node LTS, pnpm, Git, Claude Code, EAS CLI, Android Studio (и Xcode, если есть Mac)
 - [ ] Аккаунты: Expo, Apple Developer ($99/год), Google Play Console ($25), Neon, Cloudflare R2, Upstash, Sentry, PostHog
 - [ ] MCP в Claude Code: GitHub, Neon, Vercel, Figma, Sentry, Context7
@@ -12,7 +12,7 @@
 - [ ] Список 5–10 клиник Харькова для пилота
 
 ## Этап 0 — Фундамент (неделя 1–2)
-- [ ] Монорепо: pnpm + Turborepo, apps/mobile, apps/api, packages/shared, packages/db
+- [x] Монорепо: pnpm + Turborepo, apps/mobile, apps/api, packages/shared, packages/db
 - [ ] TypeScript strict, ESLint, Prettier, общие tsconfig
 - [ ] GitHub Actions: typecheck + lint + test на PR
 - [ ] Neon: проект, ветка dev, PostGIS включён; Drizzle подключён, первая миграция
