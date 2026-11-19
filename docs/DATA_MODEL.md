@@ -1,8 +1,8 @@
 # Data model (MVP)
 
 Синхронизировано с `docs/PRD.md` (решения от 19.11.2026) и `HANDOFF.md` §9. Реализовано в `packages/db`
-по мере появления фич: сейчас есть только `users` (миграция `0001_users`).
-Пометка **(V2)** — таблица нужна, но не в MVP. Пометка **(предложение)** — значение выбрано Claude Code, ждёт подтверждения.
+по мере появления фич: сейчас есть `users`, `auth_identities`, `sessions`, `otp_challenges` (миграции `0001`–`0002`).
+Пометка **(V2)** — таблица нужна, но не в MVP.
 
 ## Аккаунт
 
@@ -16,7 +16,15 @@ id, user_id, provider (`phone`|`apple`|`google`), subject (телефон в E.1
 email (nullable), created_at, last_used_at · unique (provider, subject)
 
 ### sessions — refresh-сессии
-id, user_id, refresh_token_hash, device_id (nullable), user_agent, created_at, expires_at, revoked_at
+id, user_id, refresh_token_hash (HMAC, сам токен не хранится), family_id, device_name, created_at, expires_at, revoked_at
+
+Refresh-токен меняется при каждом обновлении; все сессии одного входа делят `family_id`. Повторное
+использование старого токена отзывает всю семью (признак кражи).
+
+### otp_challenges — одноразовые коды
+id, phone (E.164), code_hash (HMAC, привязан к телефону), attempts, created_at, expires_at, consumed_at
+
+Код — 6 цифр, живёт 5 минут, 5 попыток; не чаще 1 кода в 60 с и 3 кодов за 10 минут на номер.
 
 ### devices — push-токены
 id, user_id, platform (`ios`|`android`), push_token (unique), app_version, locale, last_seen_at, created_at
@@ -38,6 +46,9 @@ chip_number, registry_number, tag_number, notes, hidden, created_at, updated_at,
 
 ### pet_members — доступ к питомцу
 pet_id, user_id, role (`owner`|`editor`|`viewer`), invited_by, created_at · PK (pet_id, user_id)
+
+Лимит Free — 2 участника на питомца, включая владельца. Проверяется при создании и принятии приглашения;
+при окончании Plus существующие участники не удаляются, блокируются только новые приглашения.
 
 ### pet_invites — приглашения по ссылке
 id, pet_id, role (`editor`|`viewer`), token_hash, created_by, created_at, expires_at,
@@ -74,8 +85,8 @@ kind (`scan`|`file`), status
 doc_type (detected), model, prompt_version, raw_extraction (jsonb), created_at, deleted_at
 
 - `stored` — файл загружен как есть, без распознавания. Распознавание можно запустить позже по желанию (тратит скан).
-- Допустимые типы **(предложение)**: `image/jpeg`, `image/png`, `image/heic`, `image/webp`, `application/pdf`.
-- Лимит размера **(предложение)**: 20 МБ на файл. Хранение лимитом сканов не ограничено.
+- Допустимые типы: `image/jpeg`, `image/png`, `image/heic`, `image/webp`, `application/pdf`.
+- Лимит размера: 20 МБ на файл. Хранение лимитом сканов не ограничено.
 
 ### extracted_fields
 id, document_id, target_type, field, value, confidence, bbox (jsonb), accepted (bool|null)
