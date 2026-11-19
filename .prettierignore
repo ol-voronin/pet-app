@@ -8,3 +8,7 @@ coverage
 # Hand-written docs: keep author formatting
 *.md
 .claude
+
+# Generated
+packages/shared/openapi.json
+packages/shared/src/api/openapi.ts

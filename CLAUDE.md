@@ -17,7 +17,8 @@
 - `pnpm install` — зависимости
 - `pnpm dev` — всё в режиме разработки
 - `pnpm -F mobile start` — Expo dev server (нужен development build, не Expo Go)
-- `pnpm -F api dev` — API локально
+- `pnpm -F api dev` — API локально (Swagger UI на `/docs`)
+- `pnpm gen:api` — после изменения роутов/схем: OpenAPI-спека + типы клиента в packages/shared
 - `pnpm typecheck` / `pnpm lint` / `pnpm test` — проверки, запускать перед каждым коммитом
 - `pnpm format` / `pnpm format:check` — Prettier (Markdown не форматируется)
 - `pnpm -F db generate` / `pnpm -F db migrate` — миграции
