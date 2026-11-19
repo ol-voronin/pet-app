@@ -30,8 +30,11 @@
 | Авторизация API: OTP по телефону, JWT 15 мин, refresh 60 дней с ротацией и отзывом при повторе | `apps/api/src/modules/auth`, ADR-0008 | #13 |
 | Привязка к Expo: owner `pet-app-team`, projectId `805be4a7-fafa-4188-b3f3-65b8effdd423` | `apps/mobile/app.json` | #10, #11 |
 | Подготовка деплоя на Vercel: `APP_ENV`, entry `src/index.ts`, `vercel.json` (fra1) | `apps/api` | #14 |
+| Хранилище файлов: политика (типы, 20 МБ), ключи объектов, подписанные ссылки S3, конфиг `S3_*`. Роутов пока нет — появятся с CRUD питомцев | `apps/api/src/modules/storage`, `packages/shared/src/files` | #20 |
 
-Тестов: 65 (api 25, shared 15, db 3, mobile 22). Авторизация проверена вживую на Neon `dev`.
+Тестов: 85 (api 42, shared 18, db 3, mobile 22). Авторизация проверена вживую на Neon `dev`.
+Хранилище вживую не проверено: приватный бакет `pet-app-files` на ветке `dev` создан, ключей доступа ещё нет
+(владелец: Neon Console → Connect → Storage → в секреты окружения как `S3_*`, см. `apps/api/README.md`).
 
 ### В работе — не закончено
 **PR #15 `fix/vercel-entry` — деплой API на Vercel (бесплатно). Не влит.**
