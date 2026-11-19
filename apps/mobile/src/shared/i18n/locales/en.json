@@ -7,5 +7,29 @@
   },
   "placeholder": {
     "comingSoon": "Something useful is coming here soon"
+  },
+  "common": {
+    "close": "Close"
+  },
+  "uiKit": {
+    "open": "Design system (dev)",
+    "title": "Design system",
+    "buttons": "Buttons",
+    "primary": "Primary",
+    "secondary": "Secondary",
+    "ghost": "Ghost",
+    "danger": "Delete",
+    "disabled": "Disabled",
+    "inputs": "Inputs",
+    "petName": "Name",
+    "petNamePlaceholder": "e.g. Barsik",
+    "helper": "Family members will see your pet under this name",
+    "chip": "Chip number",
+    "chipError": "Chip number must have 15 digits",
+    "listTitle": "Rabies vaccination",
+    "listSubtitle": "Next: 12 March 2027",
+    "openSheet": "Open sheet",
+    "sheetTitle": "Sheet",
+    "sheetBody": "A map place card or an action picker will live here."
   }
 }

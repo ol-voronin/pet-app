@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { PlaceholderScreen } from '@/shared/ui/PlaceholderScreen';
+import { PlaceholderScreen } from '@/shared/ui';
 
 export default function PetsScreen() {
   const { t } = useTranslation();

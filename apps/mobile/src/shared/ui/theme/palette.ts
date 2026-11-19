@@ -1,0 +1,21 @@
+// Raw palette. Do not use directly in components — use semantic colors from `useTheme()`.
+export const palette = {
+  white: '#FFFFFF',
+  black: '#000000',
+  neutral50: '#F7F7F8',
+  neutral100: '#EEEEF0',
+  neutral200: '#DCDCE0',
+  neutral400: '#9A9AA5',
+  neutral600: '#5C5C66',
+  neutral800: '#2A2A30',
+  neutral900: '#17171B',
+  blue400: '#6E9BFF',
+  blue600: '#1F5FE0',
+  blue700: '#174BB5',
+  green600: '#1E7B45',
+  green400: '#4CC27E',
+  red600: '#C62828',
+  red400: '#FF7A7A',
+  amber600: '#9A6200',
+  amber400: '#FFC24D',
+} as const;
