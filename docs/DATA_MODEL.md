@@ -2,7 +2,7 @@
 
 Синхронизировано с `docs/PRD.md` (решения от 19.11.2026) и `HANDOFF.md` §9. Реализовано в `packages/db`
 по мере появления фич: сейчас есть только `users` (миграция `0001_users`).
-Пометка **(V2)** — таблица нужна, но не в MVP. Пометка **(предложение)** — значение выбрано Claude Code, ждёт подтверждения.
+Пометка **(V2)** — таблица нужна, но не в MVP.
 
 ## Аккаунт
 
@@ -39,6 +39,9 @@ chip_number, registry_number, tag_number, notes, hidden, created_at, updated_at,
 ### pet_members — доступ к питомцу
 pet_id, user_id, role (`owner`|`editor`|`viewer`), invited_by, created_at · PK (pet_id, user_id)
 
+Лимит Free — 2 участника на питомца, включая владельца. Проверяется при создании и принятии приглашения;
+при окончании Plus существующие участники не удаляются, блокируются только новые приглашения.
+
 ### pet_invites — приглашения по ссылке
 id, pet_id, role (`editor`|`viewer`), token_hash, created_by, created_at, expires_at,
 accepted_by (nullable), accepted_at (nullable), revoked_at (nullable)
@@ -74,8 +77,8 @@ kind (`scan`|`file`), status
 doc_type (detected), model, prompt_version, raw_extraction (jsonb), created_at, deleted_at
 
 - `stored` — файл загружен как есть, без распознавания. Распознавание можно запустить позже по желанию (тратит скан).
-- Допустимые типы **(предложение)**: `image/jpeg`, `image/png`, `image/heic`, `image/webp`, `application/pdf`.
-- Лимит размера **(предложение)**: 20 МБ на файл. Хранение лимитом сканов не ограничено.
+- Допустимые типы: `image/jpeg`, `image/png`, `image/heic`, `image/webp`, `application/pdf`.
+- Лимит размера: 20 МБ на файл. Хранение лимитом сканов не ограничено.
 
 ### extracted_fields
 id, document_id, target_type, field, value, confidence, bbox (jsonb), accepted (bool|null)
