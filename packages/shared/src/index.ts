@@ -1,2 +1,2 @@
-// Shared zod schemas and types live here.
-export {};
+export * from './schemas/index.js';
+export { createApiClient, type ApiClient, type paths } from './api/client.js';
