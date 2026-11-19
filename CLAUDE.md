@@ -4,6 +4,10 @@
 документов, напоминания, карта (ветклиники, аптеки, площадки), события. B2C + B2B.
 Подробности: `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/ROADMAP.md`.
 
+**Сначала прочитай `HANDOFF.md` в корне.** В нём решения от 19.11.2026, визуальные токены и раздел 9 —
+список расхождений: `DATA_MODEL`, `ROADMAP` и `ARCHITECTURE` отстают от `PRD`. При противоречии прав `PRD.md`,
+затем `HANDOFF.md`.
+
 ## Стек
 - Монорепо: pnpm workspaces + Turborepo
 - `apps/mobile` — Expo (React Native, TypeScript), expo-router, TanStack Query, Zustand, expo-sqlite + Drizzle
