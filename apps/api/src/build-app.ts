@@ -1,5 +1,4 @@
 import swagger from '@fastify/swagger';
-import swaggerUi from '@fastify/swagger-ui';
 import Fastify, { type FastifyServerOptions } from 'fastify';
 import {
   jsonSchemaTransform,
@@ -21,10 +20,23 @@ export interface AppOptions {
   auth?: AuthService;
   /** Pets routes; need `auth` for the signed-in user. */
   pets?: PetsService;
+  /** Serve Swagger UI on `/docs`. Off by default: used in local development only. */
+  docsUi?: boolean;
 }
 
+/** Creates a Fastify instance with our defaults. */
+export function createFastify(logger: FastifyServerOptions['logger'] = false) {
+  return Fastify({ logger }).withTypeProvider<ZodTypeProvider>();
+}
+
+export type App = ReturnType<typeof createFastify>;
+
 export async function buildApp(opts: AppOptions) {
-  const app = Fastify({ logger: opts.logger ?? false }).withTypeProvider<ZodTypeProvider>();
+  return configureApp(createFastify(opts.logger ?? false), opts);
+}
+
+/** Registers plugins and modules on an existing instance (the server entry creates it itself). */
+export async function configureApp(app: App, opts: AppOptions) {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
@@ -39,7 +51,14 @@ export async function buildApp(opts: AppOptions) {
     transform: jsonSchemaTransform,
     transformObject: jsonSchemaTransformObject,
   });
-  await app.register(swaggerUi, { routePrefix: '/docs' });
+  // The spec itself is always available; the UI is optional.
+  app.get('/openapi.json', { schema: { hide: true } }, () => app.swagger());
+  if (opts.docsUi) {
+    // Loaded on demand: @fastify/swagger-ui → @fastify/static require()s an ESM-only package,
+    // which Vercel's Node runtime rejects (ERR_REQUIRE_ESM) as soon as the module is imported.
+    const { default: swaggerUi } = await import('@fastify/swagger-ui');
+    await app.register(swaggerUi, { routePrefix: '/docs' });
+  }
 
   await app.register(healthModule, { version: opts.version });
   if (opts.auth) await app.register(authModule, { service: opts.auth });
@@ -49,5 +68,3 @@ export async function buildApp(opts: AppOptions) {
 
   return app;
 }
-
-export type App = Awaited<ReturnType<typeof buildApp>>;

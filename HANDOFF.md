@@ -30,7 +30,7 @@
 | Авторизация API: OTP по телефону, JWT 15 мин, refresh 60 дней с ротацией и отзывом при повторе | `apps/api/src/modules/auth`, ADR-0008 | #13 |
 | Привязка к Expo: owner `pet-app-team`, projectId `805be4a7-fafa-4188-b3f3-65b8effdd423` | `apps/mobile/app.json` | #10, #11 |
 | Мобильный вход: экраны «телефон» и «код», сессия в `expo-secure-store`, автообновление access-токена, выход в «Профиле»; после перезапуска вход сохраняется без сети | `apps/mobile/src/features/auth`, `apps/mobile/app/(auth)` | #23 |
-| Подготовка деплоя на Vercel: `APP_ENV`, entry `src/index.ts`, `vercel.json` (fra1) | `apps/api` | #14 |
+| Деплой API на Vercel (staging): работает, проверены `/health`, вход с `000000`, питомцы | `apps/api` | #14, #24 |
 | Хранилище файлов: политика (типы, 20 МБ), ключи объектов, подписанные ссылки S3, конфиг `S3_*`. Роутов пока нет — появятся с CRUD питомцев | `apps/api/src/modules/storage`, `packages/shared/src/files` | #20 |
 | Питомцы API: `/pets` CRUD, фото в два шага (подписанная ссылка → подтверждение), роли owner / editor / viewer, мягкое удаление | `apps/api/src/modules/pets`, `packages/shared/src/pets` | #21 |
 
@@ -38,23 +38,15 @@
 Хранилище вживую не проверено: приватный бакет `pet-app-files` на ветке `dev` создан, ключей доступа ещё нет
 (владелец: Neon Console → Connect → Storage → в секреты окружения как `S3_*`, см. `apps/api/README.md`).
 
-### В работе — не закончено
-**PR #15 `fix/vercel-entry` — деплой API на Vercel (бесплатно). Не влит.**
-- Проект Vercel: `pet-app-api` (id `prj_SQcgaMTOivhIQcKfseJVddbwitg2`, команда `team_8iL2PPo1JUY7JAp1jlS3pzmp`),
+### Деплой API (staging, бесплатно)
+- Vercel, проект `pet-app-api` (id `prj_SQcgaMTOivhIQcKfseJVddbwitg2`, команда `team_8iL2PPo1JUY7JAp1jlS3pzmp`),
   Root Directory `apps/api`, регион функций `fra1`, Node 22, защита деплоев выключена (приложению нужен публичный URL).
-- Переменные окружения на Vercel уже заданы: `APP_ENV=staging`, `OTP_FIXED_CODE=000000`, `ENABLE_EXPERIMENTAL_COREPACK=1`,
-  `JWT_SECRET` (сгенерирован), `DATABASE_URL` (Neon `dev`, pooled). В репозитории секретов нет.
-- Production-деплой из `main` пока **падает** (там нет фиксов из PR #15). Будущий адрес: `https://pet-app-api-devvoronin-gmailcoms-projects.vercel.app`.
-- Что уже исправлено в PR #15:
-  1. «No entrypoint found which imports fastify» → Fastify создаётся прямо в `apps/api/src/index.ts`.
-  2. `ERR_MODULE_NOT_FOUND @pet-app/db/src/index.ts` → `packages/db` и `packages/shared` собираются `tsc` в `dist/`,
-     `exports`: types → `src`, runtime → `dist`; turbo собирает их перед `build/lint/test/dev` API.
-- **Текущая ошибка (preview PR #15):** `ERR_REQUIRE_ESM` — `@fastify/swagger-ui` → `@fastify/static@10` делает `require()`
-  ESM-пакета `content-disposition@3`; рантайм Vercel это не поддерживает.
-  **Следующий шаг:** не регистрировать `@fastify/swagger-ui` при `APP_ENV=staging|production` (импортировать его динамически
-  только в development) — спецификация `/docs/json` остаётся через `@fastify/swagger`. Альтернатива — Node 24 на Vercel.
-  После фикса: дождаться Ready, проверить `/health`, весь вход (`/auth/otp/request` → `/auth/otp/verify` с `000000` → `/me`),
-  влить PR #15, проверить production-адрес.
+- Адрес: `https://pet-app-api-devvoronin-gmailcoms-projects.vercel.app` — деплой из `main`.
+- Переменные окружения на Vercel: `APP_ENV=staging`, `OTP_FIXED_CODE=000000`, `ENABLE_EXPERIMENTAL_COREPACK=1`,
+  `JWT_SECRET`, `DATABASE_URL` (Neon `dev`, pooled). `S3_*` не заданы — загрузка фото отвечает 503. Секретов в репозитории нет.
+- Что пришлось учесть (подробно — `apps/api/README.md`): entry сам импортирует `fastify`; пакеты воркспейса собираются
+  в `dist`; Swagger UI грузится только при `APP_ENV=development` (иначе `ERR_REQUIRE_ESM`); `listen()` на верхнем уровне
+  без `await` (иначе функция висит). Спецификация — `GET /openapi.json`.
 
 ### Инфраструктура и доступы
 | Сервис | Что | Стоимость сейчас |
@@ -85,9 +77,9 @@
 6. Утвердить «дом на нескольких питомцев» как главный экран таба «Питомцы» (раздел 4).
 
 ### Следующие шаги по порядку
-1. Закончить PR #15 (см. «В работе»), получить рабочий публичный URL API.
-2. Проверка входа владельцем в Expo Go кодом `000000` — после шага 1. Адрес API приложение берёт из `app.json`
-   (`extra.apiUrl`) или из `EXPO_PUBLIC_API_URL`. Экраны входа автор в рендере не видел.
+1. Проверка входа владельцем в Expo Go кодом `000000`. Адрес API приложение берёт из `app.json`
+   (`extra.apiUrl`) или из `EXPO_PUBLIC_API_URL`. Экраны входа и таб «Мероприятия» автор в рендере не видел.
+2. Ключи хранилища (`S3_*`) в переменные Vercel — после этого проверить загрузку фото вживую.
 3. Этап 1 дальше: экраны питомцев в приложении (API готов), онбординг с двумя путями, семейный доступ (лимит Free = 2).
 
 ---
