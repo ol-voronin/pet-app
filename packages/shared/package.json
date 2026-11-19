@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Shared zod schemas, types and generated API client",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
     "typescript": "6.0.3"

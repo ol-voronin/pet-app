@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Drizzle schema and migrations",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
     "typescript": "6.0.3"

@@ -19,6 +19,7 @@
 - `pnpm -F mobile start` — Expo dev server (нужен development build, не Expo Go)
 - `pnpm -F api dev` — API локально
 - `pnpm typecheck` / `pnpm lint` / `pnpm test` — проверки, запускать перед каждым коммитом
+- `pnpm format` / `pnpm format:check` — Prettier (Markdown не форматируется)
 - `pnpm -F db generate` / `pnpm -F db migrate` — миграции
 
 ## Правила работы
