@@ -1,6 +1,5 @@
 import { useState, type ComponentRef, type Ref } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
-import { hitTarget } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { Text } from './Text';
 
@@ -13,7 +12,7 @@ export interface InputProps extends TextInputProps {
 
 // React 19: `ref` is a regular prop, no forwardRef needed.
 export function Input({ ref, label, helper, error, onFocus, onBlur, style, ...rest }: InputProps) {
-  const { colors, radius, spacing, typography } = useTheme();
+  const { colors, radius, spacing, typography, sizes } = useTheme();
   const [focused, setFocused] = useState(false);
   const borderColor = error ? colors.danger : focused ? colors.primary : colors.border;
 
@@ -44,7 +43,8 @@ export function Input({ ref, label, helper, error, onFocus, onBlur, style, ...re
             color: colors.text,
             backgroundColor: colors.surface,
             borderColor,
-            borderRadius: radius.md,
+            borderRadius: radius.input,
+            minHeight: sizes.buttonPrimary,
             paddingHorizontal: spacing.lg,
           },
           style,
@@ -60,5 +60,5 @@ export function Input({ ref, label, helper, error, onFocus, onBlur, style, ...re
 }
 
 const styles = StyleSheet.create({
-  input: { minHeight: hitTarget, borderWidth: StyleSheet.hairlineWidth * 2 },
+  input: { borderWidth: 1 },
 });

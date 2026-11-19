@@ -22,6 +22,7 @@ export default function UiKitScreen() {
         <Card style={{ gap: spacing.md }}>
           <Text variant="heading">{t('uiKit.buttons')}</Text>
           <Button title={t('uiKit.primary')} />
+          <Button title={t('uiKit.dark')} variant="dark" />
           <Button title={t('uiKit.secondary')} variant="secondary" />
           <Button title={t('uiKit.ghost')} variant="ghost" />
           <Button title={t('uiKit.danger')} variant="danger" />

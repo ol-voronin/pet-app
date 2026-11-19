@@ -1,16 +1,10 @@
-import { useColorScheme } from 'react-native';
-import { darkColors, lightColors, radius, spacing, typography } from './tokens';
+import { lightColors, radius, sizes, spacing, typography } from './tokens';
 
+const theme = { colors: lightColors, spacing, radius, typography, sizes, scheme: 'light' } as const;
+
+/** Single light theme for MVP. Kept as a hook so a dark theme can be added without touching callers. */
 export function useTheme() {
-  const scheme = useColorScheme();
-  const colors = scheme === 'dark' ? darkColors : lightColors;
-  return {
-    colors,
-    spacing,
-    radius,
-    typography,
-    scheme: scheme === 'dark' ? 'dark' : 'light',
-  } as const;
+  return theme;
 }
 
 export type Theme = ReturnType<typeof useTheme>;

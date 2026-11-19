@@ -30,8 +30,8 @@ export function Sheet({ visible, onClose, title, closeLabel, children }: SheetPr
           styles.sheet,
           {
             backgroundColor: colors.surface,
-            borderTopLeftRadius: radius.xl,
-            borderTopRightRadius: radius.xl,
+            borderTopLeftRadius: radius.sheet,
+            borderTopRightRadius: radius.sheet,
             padding: spacing.xl,
             paddingBottom: spacing.xl + insets.bottom,
             gap: spacing.lg,

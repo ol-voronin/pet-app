@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { hitTarget } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { Text } from './Text';
 
@@ -21,7 +20,7 @@ export function ListItem({
   onPress,
   accessibilityHint,
 }: ListItemProps) {
-  const { colors, spacing } = useTheme();
+  const { colors, spacing, sizes } = useTheme();
   return (
     <Pressable
       disabled={!onPress}
@@ -31,6 +30,7 @@ export function ListItem({
       style={({ pressed }) => [
         styles.row,
         {
+          minHeight: sizes.listRow,
           gap: spacing.md,
           paddingHorizontal: spacing.lg,
           paddingVertical: spacing.md,
@@ -53,6 +53,6 @@ export function ListItem({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', minHeight: hitTarget },
+  row: { flexDirection: 'row', alignItems: 'center' },
   body: { flex: 1 },
 });

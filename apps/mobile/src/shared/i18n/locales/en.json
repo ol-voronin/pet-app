@@ -30,6 +30,7 @@
     "listSubtitle": "Next: 12 March 2027",
     "openSheet": "Open sheet",
     "sheetTitle": "Sheet",
-    "sheetBody": "A map place card or an action picker will live here."
+    "sheetBody": "A map place card or an action picker will live here.",
+    "dark": "Dark"
   }
 }

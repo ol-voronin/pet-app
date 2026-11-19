@@ -9,9 +9,8 @@ export function Card({ style, ...rest }: ViewProps) {
       style={[
         {
           backgroundColor: colors.surface,
-          borderRadius: radius.lg,
-          borderColor: colors.border,
-          borderWidth: 1,
+          // No shadow, no border: depth by fill (HANDOFF §5).
+          borderRadius: radius.card,
           padding: spacing.lg,
         },
         style,
