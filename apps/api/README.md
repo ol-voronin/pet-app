@@ -4,7 +4,7 @@ Fastify 5 REST API (ADR-0002). OpenAPI 3.1 is generated from zod schemas.
 
 ## Run
 - `pnpm -F api dev` — watch mode on `PORT` (default 3000)
-- `GET /health` — liveness; `GET /docs` — Swagger UI
+- `GET /health` — liveness; `GET /openapi.json` — the spec; `GET /docs` — Swagger UI (only with `APP_ENV=development`)
 
 ## Module conventions
 - One module = one Fastify plugin in `src/modules/<module>/index.ts`, registered in `src/app.ts`.
@@ -30,6 +30,16 @@ bucket `pet-app-files`, key id = credential `token_id`, secret = `s3_secret_acce
 
 ## Deploy (staging, free)
 Vercel Hobby, project `pet-app-api`, Root Directory `apps/api`, region `fra1` (Frankfurt, next to Neon).
-Entry point is `src/index.ts` (Vercel's Fastify preset intercepts `listen`).
+Entry point is `src/index.ts`: it imports `fastify` itself, because Vercel's preset looks for the file that does.
+Workspace packages are compiled to `dist` (`pnpm build`); Vercel runs only JavaScript from `node_modules`.
+Swagger UI is not loaded outside development: its dependency `require()`s an ESM-only package, which Vercel's
+Node runtime rejects.
+
+Check a deploy change locally the way Vercel runs it (Node 22, compiled entry, no `require` of ESM):
+```bash
+pnpm -F @pet-app/shared build && pnpm -F @pet-app/db build
+cd apps/api && npx tsc -p tsconfig.json --noEmit false
+APP_ENV=staging OTP_FIXED_CODE=000000 DATABASE_URL=… JWT_SECRET=… node --no-experimental-require-module dist/index.js
+```
 Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` branch), `JWT_SECRET`,
 `OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
