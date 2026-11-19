@@ -36,9 +36,9 @@ await configureApp(app, {
 });
 sender.log = app.log;
 
-try {
-  await app.listen({ host: config.HOST, port: config.PORT });
-} catch (err) {
+// Not awaited: Vercel's Fastify preset takes over `listen`, and a top-level await on it never
+// settles there, so the function would hang on every request.
+app.listen({ host: config.HOST, port: config.PORT }).catch((err: unknown) => {
   app.log.error(err);
   process.exit(1);
-}
+});
