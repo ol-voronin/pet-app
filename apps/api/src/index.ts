@@ -1,5 +1,7 @@
 import { createDb } from '@pet-app/db';
-import { buildApp } from './build-app.js';
+import Fastify from 'fastify';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { configureApp } from './build-app.js';
 import { loadConfig } from './config.js';
 import { DrizzleAuthRepo } from './modules/auth/drizzle-repo.js';
 import { LogOtpSender } from './modules/auth/otp-sender.js';
@@ -23,11 +25,14 @@ const auth = new AuthService({
   ...(config.OTP_FIXED_CODE ? { fixedOtp: config.OTP_FIXED_CODE } : {}),
 });
 const pets = new PetsService({ repo: new DrizzlePetsRepo(db), storage: createStorage(config) });
-const app = await buildApp({
+// Fastify is created here (not in build-app) because Vercel's Fastify preset looks for the file that imports it.
+const app = Fastify({ logger: { level: config.LOG_LEVEL } }).withTypeProvider<ZodTypeProvider>();
+await configureApp(app, {
   version: config.APP_VERSION,
-  logger: { level: config.LOG_LEVEL },
   auth,
   pets,
+  // Swagger UI only locally: its dependency chain does not load on Vercel's Node runtime.
+  docsUi: config.APP_ENV === 'development',
 });
 sender.log = app.log;
 
