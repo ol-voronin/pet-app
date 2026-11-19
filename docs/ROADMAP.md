@@ -30,6 +30,9 @@
 ## Этап 1 — Аккаунт и питомцы (неделя 3–5)
 - [ ] ADR-0006: хранилище файлов — Cloudflare R2 или Hetzner Object Storage (оба S3-совместимы)
 - [ ] Auth: OTP (мок-провайдер в dev), JWT + refresh-сессии, SecureStore; способы входа в `auth_identities`
+  - [x] API: `/auth/otp/request`, `/auth/otp/verify`, `/auth/refresh`, `/auth/logout`, `/me` (ADR-0008)
+  - [ ] Mobile: экраны телефона и кода, SecureStore, автообновление токена
+  - [ ] Реальная доставка кода: Viber → SMS (провайдер — выбрать)
 - [ ] Sign in with Apple / Google
 - [ ] Онбординг «Добавьте питомца»: два равных пути — скан (заглушка до Этапа 3) или ручная форма; пропуск в один тап
 - [ ] CRUD питомцев, фото через presigned URL, переключатель героя «аватар / фото»

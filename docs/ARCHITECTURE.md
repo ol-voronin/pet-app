@@ -49,8 +49,9 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 | Что | Где |
 |---|---|
 | БД | Neon (PostgreSQL + PostGIS), регион EU |
-| API + воркеры | Fly.io или Render (EU), либо свой сервер — решить при первом деплое |
-| Файлы | Приватный S3-совместимый бакет: Cloudflare R2 или Hetzner Object Storage (ADR-0006) |
+| API + воркеры | Кандидат — выделенный сервер владельца в Hetzner Falkenstein (EU); решить при первом деплое |
+| Вспомогательное | VPS владельца в Украине (adm.tools): кандидат для Directus-админки и резервных копий |
+| Файлы | Hetzner Object Storage, fsn1, приватный бакет (ADR-0006) |
 | Очередь/кэш | Upstash Redis |
 | B2B-кабинет | Vercel |
 | Сборки | EAS Build / Submit / Update |
@@ -69,5 +70,6 @@ admin (Directus)  ──┘          │                    ├► R2 (доку�
 - 0003 — PowerSync vs своя синхронизация — открыто, до Этапа 2
 - 0004 — Провайдер OCR/LLM — открыто, до Этапа 3
 - 0005 — MapLibre + MapTiler vs Mapbox — открыто, до Этапа 5
-- 0006 — Хранилище файлов: R2 vs Hetzner — предложено (`docs/adr/0006-file-storage.md`), ждёт владельца
+- 0006 — Хранилище файлов — принято: Hetzner Object Storage, fsn1
+- 0008 — Авторизация: OTP + JWT + ротируемый refresh — принято
 - 0007 — Рендер аватара: в приложении vs на сервере — открыто, до Этапа 5b
