@@ -1,4 +1,5 @@
 import { Redirect, router } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { completeAddPet, useAddPetGate } from '@/features/onboarding/hooks';
@@ -13,8 +14,11 @@ import { useTheme } from '@/shared/ui';
 export default function WelcomeScreen() {
   const { colors, spacing } = useTheme();
   const { gate, userId } = useAddPetGate();
+  const [leaving, setLeaving] = useState(false);
 
-  // A pet was added from here (or the screen is already finished): continue to the pets.
+  // «Пізніше» was tapped: the map is opening, nothing else may navigate from here.
+  if (leaving) return null;
+  // A pet was added from here: continue to the pets.
   if (gate === 'skip') return <Redirect href="/pets" />;
 
   return (
@@ -22,6 +26,7 @@ export default function WelcomeScreen() {
       <ScrollView contentContainerStyle={{ padding: spacing.xl }}>
         <AddPetEmpty
           onLater={() => {
+            setLeaving(true);
             if (userId) completeAddPet(userId);
             router.replace('/');
           }}
