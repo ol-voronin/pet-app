@@ -2,7 +2,13 @@ import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAddPetGate } from '@/features/onboarding/hooks';
-import { useTheme } from '@/shared/ui';
+import { Icon, useTheme, type IconName } from '@/shared/ui';
+
+/** One-color tab icon: ink when the tab is active, muted otherwise — the same tokens as the label. */
+const tabIcon = (name: IconName) =>
+  function TabIcon({ focused, size }: { focused: boolean; size: number }) {
+    return <Icon name={name} size={size} color={focused ? 'text' : 'textMuted'} />;
+  };
 
 export default function TabsLayout() {
   const { t } = useTranslation();
@@ -29,10 +35,16 @@ export default function TabsLayout() {
         headerTintColor: colors.text,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t('tabs.map') }} />
-      <Tabs.Screen name="pets" options={{ title: t('tabs.pets') }} />
-      <Tabs.Screen name="events" options={{ title: t('tabs.events') }} />
-      <Tabs.Screen name="profile" options={{ title: t('tabs.profile') }} />
+      <Tabs.Screen name="index" options={{ title: t('tabs.map'), tabBarIcon: tabIcon('map') }} />
+      <Tabs.Screen name="pets" options={{ title: t('tabs.pets'), tabBarIcon: tabIcon('pet') }} />
+      <Tabs.Screen
+        name="events"
+        options={{ title: t('tabs.events'), tabBarIcon: tabIcon('events') }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ title: t('tabs.profile'), tabBarIcon: tabIcon('profile') }}
+      />
     </Tabs>
   );
 }

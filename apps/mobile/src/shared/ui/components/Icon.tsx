@@ -9,6 +9,10 @@ const glyphs = {
   cat: 'cat',
   pet: 'paw',
   camera: 'camera-outline',
+  // Tab bar.
+  map: 'map-marker-outline',
+  events: 'calendar-blank-outline',
+  profile: 'account-circle-outline',
   add: 'plus',
   chevron: 'chevron-right',
 } as const satisfies Record<string, ComponentProps<typeof MaterialCommunityIcons>['name']>;
