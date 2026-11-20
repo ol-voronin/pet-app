@@ -68,6 +68,11 @@ const envSchema = z
 
 export type Config = z.infer<typeof envSchema>;
 
+/**
+ * An empty variable means "not set": `.env` files often carry `SENTRY_DSN=` as a placeholder, and the URL checks
+ * above would otherwise refuse to start the server over it.
+ */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  return envSchema.parse(env);
+  const set = Object.fromEntries(Object.entries(env).filter(([, value]) => value !== ''));
+  return envSchema.parse(set);
 }
