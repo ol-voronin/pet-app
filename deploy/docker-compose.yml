@@ -37,6 +37,28 @@ services:
     depends_on:
       - api
 
+  # Admin panel for map places (manual verification, moderation queue). Off until the owner creates
+  # `directus.env` and adds COMPOSE_PROFILES=admin to `.env` — see apps/api/README.md.
+  directus:
+    profiles: ['admin']
+    image: directus/directus:12.7.0
+    restart: unless-stopped
+    # SECRET, DB_CONNECTION_STRING, ADMIN_EMAIL, ADMIN_PASSWORD. Kept apart from `.env`, so the API never sees them.
+    env_file:
+      - path: directus.env
+        required: false
+    environment:
+      DB_CLIENT: pg
+      # Its own tables live in the `directus` schema; from ours it sees only `places` (deploy/directus/setup.sql).
+      DB_SEARCH_PATH: array:directus,public
+      PUBLIC_URL: https://${API_DOMAIN}/cms
+      TELEMETRY: 'false'
+      RATE_LIMITER_ENABLED: 'true'
+      RATE_LIMITER_POINTS: '50'
+      RATE_LIMITER_DURATION: '1'
+    expose:
+      - '8055'
+
   redis:
     image: redis:7.4-alpine
     restart: unless-stopped

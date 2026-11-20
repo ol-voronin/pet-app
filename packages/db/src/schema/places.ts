@@ -63,11 +63,8 @@ export const places = pgTable(
       .generatedAlwaysAs(sql`(ST_SetSRID(ST_MakePoint(lon, lat), 4326)::geography)`),
     address: text('address'),
     city: text('city'),
-    /** E.164. */
-    phones: text('phones')
-      .array()
-      .notNull()
-      .default(sql`'{}'::text[]`),
+    /** E.164. A JSON array, not `text[]`: the admin panel (Directus) cannot edit Postgres arrays. */
+    phones: jsonb('phones').$type<string[]>().notNull().default([]),
     website: text('website'),
     /** OSM `opening_hours` syntax, e.g. `Mo-Fr 09:00-18:00`. */
     openingHours: text('opening_hours'),

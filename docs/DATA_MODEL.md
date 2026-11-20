@@ -127,11 +127,11 @@ status (`scheduled`|`sent`|`done`|`snoozed`|`cancelled`), created_by, created_at
 ## Карта
 
 ### places
-Реализовано в `packages/db/src/schema/places.ts` (миграция `0005_places`).
+Реализовано в `packages/db/src/schema/places.ts` (миграции `0005_places`, `0006_places_phones_json`).
 
 id, category (`clinic`|`pharmacy`|`dog_park`|`shop`|`groomer`|`trainer`|`cafe`|`other`),
 name (может быть пустым — у многих площадок нет названия), names (jsonb: `default`, `uk`, `ru`, `en` — для поиска),
-lat, lon, geom (geography Point — вычисляется из lat/lon), address, city, phones (text[], E.164), website,
+lat, lon, geom (geography Point — вычисляется из lat/lon), address, city, phones (jsonb-массив строк, E.164), website,
 opening_hours (строка в формате OSM), attributes (jsonb: open247, emergency, fenced),
 source (`osm`|`manual`|`user`; `claimed` появится с B2B), osm_type + osm_id (уникальная пара), osm_tags (jsonb,
 теги на момент последнего импорта), osm_seen_at, osm_missing_since, **verified_at**, verified_by,
