@@ -499,6 +499,157 @@ export interface components {
                 isYou: boolean;
             }[];
         };
+        VaccinationDetailsInput: {
+            vaccineName: string;
+            vaccineNormalizedId?: string | null;
+            batch?: string | null;
+            /** @default [] */
+            against: string[];
+        };
+        TreatmentDetailsInput: {
+            /** @enum {string} */
+            kind: "flea_tick" | "deworming";
+            product: string;
+            productNormalizedId?: string | null;
+        };
+        MedicationDetailsInput: {
+            drug: string;
+            dose?: string | null;
+            frequency?: string | null;
+            startDate?: string | null;
+            endDate?: string | null;
+        };
+        LabResultInput: {
+            name: string;
+            value: string;
+            unit?: string | null;
+            refMin?: number | null;
+            refMax?: number | null;
+            flag?: ("low" | "normal" | "high") | null;
+        };
+        LabDetailsInput: {
+            testName: string;
+            /** @default [] */
+            results: components["schemas"]["LabResultInput"][];
+        };
+        VisitDetailsInput: {
+            reason?: string | null;
+            diagnosisText?: string | null;
+            recommendations?: string | null;
+        };
+        WeightDetailsInput: {
+            valueKg: number;
+        };
+        NoteDetailsInput: {
+            text: string;
+        };
+        HealthRecordInput: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            petId: string;
+            /** Format: date-time */
+            date: string;
+            title: string | null;
+            /** @enum {string} */
+            source: "manual" | "ocr" | "clinic";
+            sourceDocumentId: string | null;
+            clinicName: string | null;
+            vetName: string | null;
+            nextDueDate: string | null;
+            version: number;
+            createdBy: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        } & ({
+            /** @constant */
+            type: "vaccination";
+            details: components["schemas"]["VaccinationDetailsInput"];
+        } | {
+            /** @constant */
+            type: "treatment";
+            details: components["schemas"]["TreatmentDetailsInput"];
+        } | {
+            /** @constant */
+            type: "visit";
+            details: components["schemas"]["VisitDetailsInput"];
+        } | {
+            /** @constant */
+            type: "lab";
+            details: components["schemas"]["LabDetailsInput"];
+        } | {
+            /** @constant */
+            type: "medication";
+            details: components["schemas"]["MedicationDetailsInput"];
+        } | {
+            /** @constant */
+            type: "note";
+            details: components["schemas"]["NoteDetailsInput"];
+        } | {
+            /** @constant */
+            type: "weight";
+            details: components["schemas"]["WeightDetailsInput"];
+        });
+        CreateHealthRecordBodyInput: {
+            /** Format: date-time */
+            date: string;
+            title?: string | null;
+            clinicName?: string | null;
+            vetName?: string | null;
+            nextDueDate?: string | null;
+        } & ({
+            /** @constant */
+            type: "vaccination";
+            details: components["schemas"]["VaccinationDetailsInput"];
+        } | {
+            /** @constant */
+            type: "treatment";
+            details: components["schemas"]["TreatmentDetailsInput"];
+        } | {
+            /** @constant */
+            type: "visit";
+            details: components["schemas"]["VisitDetailsInput"];
+        } | {
+            /** @constant */
+            type: "lab";
+            details: components["schemas"]["LabDetailsInput"];
+        } | {
+            /** @constant */
+            type: "medication";
+            details: components["schemas"]["MedicationDetailsInput"];
+        } | {
+            /** @constant */
+            type: "note";
+            details: components["schemas"]["NoteDetailsInput"];
+        } | {
+            /** @constant */
+            type: "weight";
+            details: components["schemas"]["WeightDetailsInput"];
+        });
+        UpdateHealthRecordBodyInput: {
+            /** Format: date-time */
+            date?: string;
+            title?: string | null;
+            clinicName?: string | null;
+            vetName?: string | null;
+            nextDueDate?: string | null;
+            details?: {
+                [key: string]: unknown;
+            };
+        };
+        HealthRecordVersionInput: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            healthRecordId: string;
+            version: number;
+            snapshot: components["schemas"]["HealthRecordInput"];
+            changedBy: string | null;
+            /** Format: date-time */
+            changedAt: string;
+        };
         HealthResponse: {
             /** @constant */
             status: "ok";
@@ -696,6 +847,157 @@ export interface components {
                 role: "owner" | "editor" | "viewer";
                 isYou: boolean;
             }[];
+        };
+        VaccinationDetails: {
+            vaccineName: string;
+            vaccineNormalizedId?: string | null;
+            batch?: string | null;
+            /** @default [] */
+            against: string[];
+        };
+        TreatmentDetails: {
+            /** @enum {string} */
+            kind: "flea_tick" | "deworming";
+            product: string;
+            productNormalizedId?: string | null;
+        };
+        MedicationDetails: {
+            drug: string;
+            dose?: string | null;
+            frequency?: string | null;
+            startDate?: string | null;
+            endDate?: string | null;
+        };
+        LabResult: {
+            name: string;
+            value: string;
+            unit?: string | null;
+            refMin?: number | null;
+            refMax?: number | null;
+            flag?: ("low" | "normal" | "high") | null;
+        };
+        LabDetails: {
+            testName: string;
+            /** @default [] */
+            results: components["schemas"]["LabResult"][];
+        };
+        VisitDetails: {
+            reason?: string | null;
+            diagnosisText?: string | null;
+            recommendations?: string | null;
+        };
+        WeightDetails: {
+            valueKg: number;
+        };
+        NoteDetails: {
+            text: string;
+        };
+        HealthRecord: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            petId: string;
+            /** Format: date-time */
+            date: string;
+            title: string | null;
+            /** @enum {string} */
+            source: "manual" | "ocr" | "clinic";
+            sourceDocumentId: string | null;
+            clinicName: string | null;
+            vetName: string | null;
+            nextDueDate: string | null;
+            version: number;
+            createdBy: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        } & ({
+            /** @constant */
+            type: "vaccination";
+            details: components["schemas"]["VaccinationDetails"];
+        } | {
+            /** @constant */
+            type: "treatment";
+            details: components["schemas"]["TreatmentDetails"];
+        } | {
+            /** @constant */
+            type: "visit";
+            details: components["schemas"]["VisitDetails"];
+        } | {
+            /** @constant */
+            type: "lab";
+            details: components["schemas"]["LabDetails"];
+        } | {
+            /** @constant */
+            type: "medication";
+            details: components["schemas"]["MedicationDetails"];
+        } | {
+            /** @constant */
+            type: "note";
+            details: components["schemas"]["NoteDetails"];
+        } | {
+            /** @constant */
+            type: "weight";
+            details: components["schemas"]["WeightDetails"];
+        });
+        CreateHealthRecordBody: {
+            /** Format: date-time */
+            date: string;
+            title?: string | null;
+            clinicName?: string | null;
+            vetName?: string | null;
+            nextDueDate?: string | null;
+        } & ({
+            /** @constant */
+            type: "vaccination";
+            details: components["schemas"]["VaccinationDetails"];
+        } | {
+            /** @constant */
+            type: "treatment";
+            details: components["schemas"]["TreatmentDetails"];
+        } | {
+            /** @constant */
+            type: "visit";
+            details: components["schemas"]["VisitDetails"];
+        } | {
+            /** @constant */
+            type: "lab";
+            details: components["schemas"]["LabDetails"];
+        } | {
+            /** @constant */
+            type: "medication";
+            details: components["schemas"]["MedicationDetails"];
+        } | {
+            /** @constant */
+            type: "note";
+            details: components["schemas"]["NoteDetails"];
+        } | {
+            /** @constant */
+            type: "weight";
+            details: components["schemas"]["WeightDetails"];
+        });
+        UpdateHealthRecordBody: {
+            /** Format: date-time */
+            date?: string;
+            title?: string | null;
+            clinicName?: string | null;
+            vetName?: string | null;
+            nextDueDate?: string | null;
+            details?: {
+                [key: string]: unknown;
+            };
+        };
+        HealthRecordVersion: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            healthRecordId: string;
+            version: number;
+            snapshot: components["schemas"]["HealthRecord"];
+            changedBy: string | null;
+            /** Format: date-time */
+            changedAt: string;
         };
     };
     responses: never;

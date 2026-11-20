@@ -70,6 +70,9 @@ invite_id, pet_id · PK (invite_id, pet_id)
 ## Медкарта
 
 ### health_records — единая таблица медзаписей
+Реализовано в `packages/db/src/schema/health-records.ts` (миграция `0006_health_records`); zod-схемы записи и
+`details` — `packages/shared/src/health-records`.
+
 id, pet_id, type (`vaccination`|`treatment`|`visit`|`lab`|`medication`|`note`|`weight`),
 date, title, details (jsonb — поля, зависящие от type),
 source (`manual`|`ocr`|`clinic`), source_document_id (nullable),
@@ -86,6 +89,13 @@ version, created_by, created_at, updated_at, deleted_at
 - note: text
 
 Текущий вес питомца — последняя запись `weight`, отдельного поля у `pets` нет.
+
+- `details` хранится в том виде, в каком его проверяет zod-схема: ключи в camelCase (`vaccineName`, `valueKg`).
+- `title` необязателен: весу и заметке заголовок не нужен.
+- `created_by` обнуляется при удалении аккаунта автора — запись принадлежит питомцу и остаётся.
+- Ограничения в базе: `version >= 1`; запись `source = ocr` обязана иметь `source_document_id`.
+  Внешний ключ на `documents` появится вместе с этой таблицей.
+- `source` клиент не передаёт: `manual` ставит сервер при ручном вводе, `ocr` — при подтверждении скана.
 
 ### health_record_versions — история изменений
 id, health_record_id, version, snapshot (jsonb — запись целиком до изменения), changed_by, changed_at
