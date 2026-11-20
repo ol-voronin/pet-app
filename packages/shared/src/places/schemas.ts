@@ -22,6 +22,13 @@ export type PlaceCategory = z.infer<typeof placeCategorySchema>;
 export const placeSourceSchema = z.enum(['osm', 'manual', 'user']);
 export type PlaceSource = z.infer<typeof placeSourceSchema>;
 
+/** Who sees a person's own marker: only them and their family, or everyone (after moderation). */
+export const placeVisibilitySchema = z.enum(['public', 'private']);
+export type PlaceVisibility = z.infer<typeof placeVisibilitySchema>;
+
+export const placeModerationSchema = z.enum(['approved', 'pending', 'rejected']);
+export type PlaceModeration = z.infer<typeof placeModerationSchema>;
+
 const lat = z.coerce.number().min(-90).max(90);
 const lon = z.coerce.number().min(-180).max(180);
 
@@ -47,6 +54,8 @@ const markerFields = {
   lat: z.number(),
   lon: z.number(),
   open247: z.boolean(),
+  /** A marker added by the person or someone in their family; drawn differently on the map. */
+  mine: z.boolean(),
 };
 export const placeMarkerSchema = z.object(markerFields).meta({ id: 'PlaceMarker' });
 
@@ -74,8 +83,31 @@ export const placeSchema = z
     source: placeSourceSchema,
     /** When a person last confirmed the details; `null` — nobody has yet. */
     verifiedAt: z.iso.datetime().nullable(),
+    visibility: placeVisibilitySchema,
+    /** For a public marker of the person: waiting for a moderator, approved or rejected. */
+    moderationStatus: placeModerationSchema,
+    /** The signed-in person added this marker and may delete it. */
+    canDelete: z.boolean(),
   })
   .meta({ id: 'Place' });
+
+/** How many own markers one person may keep; a guard against flooding the map. */
+export const MAX_OWN_PLACES = 100;
+
+/**
+ * A person's own marker. Private (the default) is seen by them and their family at once;
+ * public is shown to everyone only after a moderator approves it.
+ */
+export const createPlaceBodySchema = z
+  .object({
+    name: z.string().trim().min(2).max(80),
+    category: placeCategorySchema,
+    lat: z.number().min(-90).max(90),
+    lon: z.number().min(-180).max(180),
+    visibility: placeVisibilitySchema.default('private'),
+  })
+  .meta({ id: 'CreatePlaceBody' });
+export type CreatePlaceBody = z.infer<typeof createPlaceBodySchema>;
 
 export const placeParamsSchema = z.object({ placeId: z.uuid() });
 

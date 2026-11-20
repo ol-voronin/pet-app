@@ -1,6 +1,6 @@
-import type { PlaceCategory, PlaceSource } from '@pet-app/shared';
+import type { PlaceCategory, PlaceModeration, PlaceSource, PlaceVisibility } from '@pet-app/shared';
 
-/** A place as the API needs it. Only points the public may see ever leave the repository. */
+/** A place as the API needs it. Only points the viewer may see ever leave the repository. */
 export interface PlaceRecord {
   id: string;
   category: PlaceCategory;
@@ -17,6 +17,23 @@ export interface PlaceRecord {
   attributes: { open247?: true; emergency?: true; fenced?: true };
   source: PlaceSource;
   verifiedAt: Date | null;
+  visibility: PlaceVisibility;
+  moderationStatus: PlaceModeration;
+  /** Author of a person's own marker; `null` for imported and hand-added points. */
+  createdBy: string | null;
+}
+
+/** What a person gives to add their own marker. */
+export interface NewOwnPlace {
+  id: string;
+  authorId: string;
+  name: string;
+  category: PlaceCategory;
+  lat: number;
+  lon: number;
+  visibility: PlaceVisibility;
+  moderationStatus: PlaceModeration;
+  now: Date;
 }
 
 export interface PlaceFilters {
@@ -40,13 +57,16 @@ export interface Point {
 export type PlaceWithDistance = PlaceRecord & { distanceM: number | null };
 
 /**
- * Read side of places. Every method returns only what everyone may see: public, approved,
- * not hidden by a moderator and still present in OpenStreetMap.
+ * Places as one person sees them. Every read returns only:
+ * - what everyone may see: public, approved, not hidden, still present in OpenStreetMap;
+ * - own markers of the viewer and of their family (people who share a pet with them), whatever
+ *   their moderation status — the author sees a marker at once, others only after approval.
  */
 export interface PlacesRepo {
-  inBox(box: Box, filters: PlaceFilters, limit: number): Promise<PlaceRecord[]>;
+  inBox(viewerId: string, box: Box, filters: PlaceFilters, limit: number): Promise<PlaceRecord[]>;
   /** Nearest first. */
   nearby(
+    viewerId: string,
     center: Point,
     radiusM: number,
     filters: PlaceFilters,
@@ -57,10 +77,17 @@ export interface PlacesRepo {
    * `variants` are spellings of one query (see `queryVariants`).
    */
   search(
+    viewerId: string,
     variants: string[],
     near: Point | undefined,
     filters: PlaceFilters,
     limit: number,
   ): Promise<PlaceWithDistance[]>;
-  byId(id: string): Promise<PlaceRecord | undefined>;
+  byId(viewerId: string, id: string): Promise<PlaceRecord | undefined>;
+
+  createOwn(place: NewOwnPlace): Promise<PlaceRecord>;
+  /** Own markers the person still keeps (not deleted). */
+  countOwn(authorId: string): Promise<number>;
+  /** Hides the author's own marker; `false` when there is no such marker of theirs. The row stays. */
+  deleteOwn(authorId: string, id: string, now: Date): Promise<boolean>;
 }

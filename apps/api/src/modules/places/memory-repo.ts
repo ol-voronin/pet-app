@@ -1,6 +1,7 @@
 import { MIN_SIMILARITY, similarity } from './search-text.js';
 import type {
   Box,
+  NewOwnPlace,
   PlaceFilters,
   PlaceRecord,
   PlacesRepo,
@@ -9,8 +10,6 @@ import type {
 } from './types.js';
 
 export interface MemoryPlace extends PlaceRecord {
-  visibility?: 'public' | 'private';
-  moderationStatus?: 'approved' | 'pending' | 'rejected';
   deletedAt?: Date | null;
   osmMissingSince?: Date | null;
 }
@@ -25,25 +24,36 @@ export function distanceM(a: Point, b: Point): number {
   return Math.round(2 * 6_371_008 * Math.asin(Math.sqrt(h)));
 }
 
+/** People who share a pet with the user, the user included. */
+export type FamilyOf = (userId: string) => ReadonlySet<string>;
+
+const alone: FamilyOf = (userId) => new Set([userId]);
+
 /** In-memory places for tests; same visibility and ordering rules as the Postgres repository. */
 export class MemoryPlacesRepo implements PlacesRepo {
-  constructor(private readonly rows: MemoryPlace[] = []) {}
+  constructor(
+    readonly rows: MemoryPlace[] = [],
+    private readonly familyOf: FamilyOf = alone,
+  ) {}
 
-  private visible(filters: PlaceFilters): MemoryPlace[] {
-    return this.rows.filter(
-      (p) =>
-        (p.visibility ?? 'public') === 'public' &&
-        (p.moderationStatus ?? 'approved') === 'approved' &&
-        !p.deletedAt &&
-        !p.osmMissingSince &&
+  private visible(viewerId: string, filters: PlaceFilters): MemoryPlace[] {
+    const family = this.familyOf(viewerId);
+    return this.rows.filter((p) => {
+      if (p.deletedAt) return false;
+      const forEveryone =
+        p.visibility === 'public' && p.moderationStatus === 'approved' && !p.osmMissingSince;
+      const ofFamily = p.source === 'user' && p.createdBy !== null && family.has(p.createdBy);
+      return (
+        (forEveryone || ofFamily) &&
         (filters.categories.length === 0 || filters.categories.includes(p.category)) &&
-        (!filters.open247 || p.attributes.open247 === true),
-    );
+        (!filters.open247 || p.attributes.open247 === true)
+      );
+    });
   }
 
-  inBox(box: Box, filters: PlaceFilters, limit: number): Promise<PlaceRecord[]> {
+  inBox(viewerId: string, box: Box, filters: PlaceFilters, limit: number): Promise<PlaceRecord[]> {
     return Promise.resolve(
-      this.visible(filters)
+      this.visible(viewerId, filters)
         .filter(
           (p) => p.lon >= box.west && p.lon <= box.east && p.lat >= box.south && p.lat <= box.north,
         )
@@ -52,13 +62,14 @@ export class MemoryPlacesRepo implements PlacesRepo {
   }
 
   nearby(
+    viewerId: string,
     center: Point,
     radiusM: number,
     filters: PlaceFilters,
     limit: number,
   ): Promise<PlaceWithDistance[]> {
     return Promise.resolve(
-      this.visible(filters)
+      this.visible(viewerId, filters)
         .map((p) => ({ ...p, distanceM: distanceM(center, p) }))
         .filter((p) => p.distanceM <= radiusM)
         .sort((a, b) => a.distanceM - b.distanceM)
@@ -67,12 +78,13 @@ export class MemoryPlacesRepo implements PlacesRepo {
   }
 
   search(
+    viewerId: string,
     variants: string[],
     near: Point | undefined,
     filters: PlaceFilters,
     limit: number,
   ): Promise<PlaceWithDistance[]> {
-    const scored = this.visible(filters)
+    const scored = this.visible(viewerId, filters)
       .map((p) => {
         const text = [p.name, ...Object.values(p.names)].filter(Boolean).join(' ');
         const score = Math.max(0, ...variants.map((v) => similarity(v, text)));
@@ -83,7 +95,47 @@ export class MemoryPlacesRepo implements PlacesRepo {
     return Promise.resolve(scored.slice(0, limit).map((s) => s.place));
   }
 
-  byId(id: string): Promise<PlaceRecord | undefined> {
-    return Promise.resolve(this.visible({ categories: [] }).find((p) => p.id === id));
+  byId(viewerId: string, id: string): Promise<PlaceRecord | undefined> {
+    return Promise.resolve(this.visible(viewerId, { categories: [] }).find((p) => p.id === id));
+  }
+
+  createOwn(place: NewOwnPlace): Promise<PlaceRecord> {
+    const row: MemoryPlace = {
+      id: place.id,
+      category: place.category,
+      name: place.name,
+      names: {},
+      lat: place.lat,
+      lon: place.lon,
+      address: null,
+      city: null,
+      phones: [],
+      website: null,
+      openingHours: null,
+      attributes: {},
+      source: 'user',
+      verifiedAt: null,
+      visibility: place.visibility,
+      moderationStatus: place.moderationStatus,
+      createdBy: place.authorId,
+    };
+    this.rows.push(row);
+    return Promise.resolve(row);
+  }
+
+  countOwn(authorId: string): Promise<number> {
+    return Promise.resolve(
+      this.rows.filter((p) => p.source === 'user' && p.createdBy === authorId && !p.deletedAt)
+        .length,
+    );
+  }
+
+  deleteOwn(authorId: string, id: string, now: Date): Promise<boolean> {
+    const row = this.rows.find(
+      (p) => p.id === id && p.source === 'user' && p.createdBy === authorId && !p.deletedAt,
+    );
+    if (!row) return Promise.resolve(false);
+    row.deletedAt = now;
+    return Promise.resolve(true);
   }
 }

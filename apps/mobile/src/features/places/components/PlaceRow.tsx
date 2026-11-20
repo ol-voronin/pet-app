@@ -45,6 +45,11 @@ export function PlaceRow({ place, onPress }: { place: PlaceListItem; onPress: ()
             {details}
           </Text>
         ) : null}
+        {place.mine ? (
+          <Text variant="caption" color="accent">
+            {t('places.own.badge')}
+          </Text>
+        ) : null}
         {place.open247 ? (
           <Text variant="caption" color="accent">
             {t('places.filter.open247')}

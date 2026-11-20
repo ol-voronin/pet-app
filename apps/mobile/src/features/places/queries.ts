@@ -1,3 +1,5 @@
+import type { CreatePlaceBody, Place } from '@pet-app/shared';
+import type { QueryClient } from '@tanstack/react-query';
 import type { PlaceFilters, PlacesApi, Point } from './api';
 import { canSearchAddress, canSearchPlaces } from './logic';
 
@@ -64,4 +66,21 @@ export const placeQuery = (api: PlacesApi, placeId: string) => ({
   queryKey: placeKeys.detail(placeId),
   queryFn: () => api.get(placeId),
   staleTime: 10 * MINUTE,
+});
+
+/** After adding or removing a marker every list and search may be different: refetch what is on screen. */
+export const createPlaceMutation = (api: PlacesApi, client: QueryClient) => ({
+  mutationFn: (body: CreatePlaceBody) => api.create(body),
+  onSuccess: async (place: Place) => {
+    client.setQueryData(placeKeys.detail(place.id), place);
+    await client.invalidateQueries({ queryKey: placeKeys.all });
+  },
+});
+
+export const deletePlaceMutation = (api: PlacesApi, client: QueryClient) => ({
+  mutationFn: (placeId: string) => api.remove(placeId),
+  onSuccess: async (_: unknown, placeId: string) => {
+    client.removeQueries({ queryKey: placeKeys.detail(placeId) });
+    await client.invalidateQueries({ queryKey: placeKeys.all });
+  },
 });

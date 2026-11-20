@@ -6,6 +6,9 @@ import {
   formatDistance,
   formatPhone,
   matchCategories,
+  ownStatusKey,
+  placeSaveErrorKey,
+  validateNewPlace,
   parseRecentSearches,
   routeUrl,
   telUrl,
@@ -92,5 +95,44 @@ describe('search thresholds and radius', () => {
     expect(widerRadius(2)).toBe(5);
     expect(widerRadius(10)).toBe(25);
     expect(widerRadius(25)).toBeNull();
+  });
+});
+
+describe('own marker form', () => {
+  it('asks for a name of 2–80 characters and a category', () => {
+    expect(validateNewPlace({ name: ' x ', category: null, visibility: 'private' })).toEqual({
+      ok: false,
+      errors: { name: 'places.new.errors.name', category: 'places.new.errors.category' },
+    });
+    expect(
+      validateNewPlace({ name: 'a'.repeat(81), category: 'cafe', visibility: 'private' }),
+    ).toEqual({
+      ok: false,
+      errors: { name: 'places.new.errors.name' },
+    });
+    expect(
+      validateNewPlace({ name: '  Наш   майданчик ', category: 'dog_park', visibility: 'public' }),
+    ).toEqual({ ok: true, name: 'Наш майданчик', category: 'dog_park' });
+  });
+
+  it('explains a failed save', () => {
+    expect(placeSaveErrorKey(new Error('network_error'))).toBe('places.new.errors.network');
+    expect(placeSaveErrorKey({ status: 409 })).toBe('places.new.errors.tooMany');
+    expect(placeSaveErrorKey({ status: 500 })).toBe('places.new.errors.unknown');
+  });
+
+  it('says who sees an own marker', () => {
+    expect(ownStatusKey({ visibility: 'private', moderationStatus: 'approved' })).toBe(
+      'places.own.private',
+    );
+    expect(ownStatusKey({ visibility: 'public', moderationStatus: 'pending' })).toBe(
+      'places.own.pending',
+    );
+    expect(ownStatusKey({ visibility: 'public', moderationStatus: 'rejected' })).toBe(
+      'places.own.rejected',
+    );
+    expect(ownStatusKey({ visibility: 'public', moderationStatus: 'approved' })).toBe(
+      'places.own.public',
+    );
   });
 });

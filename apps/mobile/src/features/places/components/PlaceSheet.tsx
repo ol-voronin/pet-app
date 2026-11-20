@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Icon, Sheet, Text, useTheme, type IconName } from '@/shared/ui';
-import { usePlace } from '../hooks';
+import { useDeletePlace, usePlace } from '../hooks';
 import { categoryIcon, categoryKey } from '../labels';
-import { formatPhone, routeUrl, telUrl } from '../logic';
+import { formatPhone, ownStatusKey, routeUrl, telUrl } from '../logic';
 
 /** The place card: what it is, where, when it works, and the two actions — call and directions. */
 export function PlaceSheet({ placeId, onClose }: { placeId: string | null; onClose: () => void }) {
@@ -15,7 +15,7 @@ export function PlaceSheet({ placeId, onClose }: { placeId: string | null; onClo
   return (
     <Sheet visible={placeId !== null} onClose={onClose} closeLabel={t('common.close')}>
       {place.data ? (
-        <PlaceCard place={place.data} />
+        <PlaceCard place={place.data} onDeleted={onClose} />
       ) : place.isError ? (
         <View style={styles.center}>
           <Text color="textMuted">{t('places.card.error')}</Text>
@@ -36,10 +36,12 @@ export function PlaceSheet({ placeId, onClose }: { placeId: string | null; onClo
   );
 }
 
-function PlaceCard({ place }: { place: Place }) {
+function PlaceCard({ place, onDeleted }: { place: Place; onDeleted: () => void }) {
   const { t, i18n } = useTranslation();
   const { spacing } = useTheme();
   const [failed, setFailed] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const remove = useDeletePlace();
 
   const open = (url: string) => {
     setFailed(false);
@@ -126,16 +128,46 @@ function PlaceCard({ place }: { place: Place }) {
         ) : null}
       </View>
 
-      <Text variant="caption" color="textMuted">
-        {place.verifiedAt
-          ? t('places.card.verified', {
-              date: new Intl.DateTimeFormat(i18n.language, {
-                dateStyle: 'medium',
-                timeZone: 'Europe/Kyiv',
-              }).format(new Date(place.verifiedAt)),
-            })
-          : t('places.card.notVerified')}
-      </Text>
+      {place.mine ? (
+        <View style={{ gap: spacing.sm }}>
+          <Text variant="bodySmall" color="textMuted">
+            {t(ownStatusKey(place))}
+          </Text>
+          {place.canDelete ? (
+            // Two taps: the first one only asks.
+            <Button
+              variant="danger"
+              title={confirming ? t('places.own.deleteConfirm') : t('places.own.delete')}
+              loading={remove.isPending}
+              onPress={() => {
+                if (!confirming) {
+                  setConfirming(true);
+                  return;
+                }
+                remove.mutate(place.id, { onSuccess: onDeleted });
+              }}
+            />
+          ) : null}
+          {remove.isError ? (
+            <Text variant="bodySmall" color="danger">
+              {t('places.own.deleteError')}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {place.source === 'user' ? null : (
+        <Text variant="caption" color="textMuted">
+          {place.verifiedAt
+            ? t('places.card.verified', {
+                date: new Intl.DateTimeFormat(i18n.language, {
+                  dateStyle: 'medium',
+                  timeZone: 'Europe/Kyiv',
+                }).format(new Date(place.verifiedAt)),
+              })
+            : t('places.card.notVerified')}
+        </Text>
+      )}
     </ScrollView>
   );
 }

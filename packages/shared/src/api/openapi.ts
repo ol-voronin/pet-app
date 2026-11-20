@@ -188,7 +188,8 @@ export interface paths {
         /** Pins inside the visible part of the map */
         get: operations["listPlacesInBox"];
         put?: never;
-        post?: never;
+        /** Add own marker: private at once, public after moderation */
+        post: operations["createPlace"];
         delete?: never;
         options?: never;
         head?: never;
@@ -240,7 +241,8 @@ export interface paths {
         get: operations["getPlace"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Remove own marker */
+        delete: operations["deletePlace"];
         options?: never;
         head?: never;
         patch?: never;
@@ -593,6 +595,7 @@ export interface components {
             lat: number;
             lon: number;
             open247: boolean;
+            mine: boolean;
         };
         PlaceListItemInput: {
             /** Format: uuid */
@@ -603,6 +606,7 @@ export interface components {
             lat: number;
             lon: number;
             open247: boolean;
+            mine: boolean;
             address: string | null;
             distanceM: number | null;
         };
@@ -615,6 +619,7 @@ export interface components {
             lat: number;
             lon: number;
             open247: boolean;
+            mine: boolean;
             address: string | null;
             city: string | null;
             phones: string[];
@@ -625,6 +630,23 @@ export interface components {
             /** @enum {string} */
             source: "osm" | "manual" | "user";
             verifiedAt: string | null;
+            /** @enum {string} */
+            visibility: "public" | "private";
+            /** @enum {string} */
+            moderationStatus: "approved" | "pending" | "rejected";
+            canDelete: boolean;
+        };
+        CreatePlaceBodyInput: {
+            name: string;
+            /** @enum {string} */
+            category: "clinic" | "pharmacy" | "dog_park" | "shop" | "groomer" | "trainer" | "cafe" | "other";
+            lat: number;
+            lon: number;
+            /**
+             * @default private
+             * @enum {string}
+             */
+            visibility: "public" | "private";
         };
         PlacesInBoxInput: {
             places: components["schemas"]["PlaceMarkerInput"][];
@@ -849,6 +871,7 @@ export interface components {
             lat: number;
             lon: number;
             open247: boolean;
+            mine: boolean;
         };
         PlaceListItem: {
             /** Format: uuid */
@@ -859,6 +882,7 @@ export interface components {
             lat: number;
             lon: number;
             open247: boolean;
+            mine: boolean;
             address: string | null;
             distanceM: number | null;
         };
@@ -871,6 +895,7 @@ export interface components {
             lat: number;
             lon: number;
             open247: boolean;
+            mine: boolean;
             address: string | null;
             city: string | null;
             phones: string[];
@@ -881,6 +906,23 @@ export interface components {
             /** @enum {string} */
             source: "osm" | "manual" | "user";
             verifiedAt: string | null;
+            /** @enum {string} */
+            visibility: "public" | "private";
+            /** @enum {string} */
+            moderationStatus: "approved" | "pending" | "rejected";
+            canDelete: boolean;
+        };
+        CreatePlaceBody: {
+            name: string;
+            /** @enum {string} */
+            category: "clinic" | "pharmacy" | "dog_park" | "shop" | "groomer" | "trainer" | "cafe" | "other";
+            lat: number;
+            lon: number;
+            /**
+             * @default private
+             * @enum {string}
+             */
+            visibility: "public" | "private";
         };
         PlacesInBox: {
             places: components["schemas"]["PlaceMarker"][];
@@ -1755,6 +1797,57 @@ export interface operations {
             };
         };
     };
+    createPlace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePlaceBodyInput"];
+            };
+        };
+        responses: {
+            /** @description Default Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Place"];
+                };
+            };
+            /** @description Default Response */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     listPlacesNearby: {
         parameters: {
             query: {
@@ -1864,6 +1957,53 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Place"];
                 };
+            };
+            /** @description Default Response */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deletePlace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                placeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Default Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Default Response */
             400: {

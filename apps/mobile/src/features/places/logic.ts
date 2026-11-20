@@ -108,3 +108,64 @@ export function parseRecentSearches(raw: string | null): string[] {
 /** Long enough to ask the server: names from two letters, addresses from three. */
 export const canSearchPlaces = (query: string) => query.trim().length >= 2;
 export const canSearchAddress = (query: string) => query.trim().length >= 3;
+
+/** Categories a person can give their own marker, most likely first. */
+export const OWN_PLACE_CATEGORIES = [
+  'dog_park',
+  'clinic',
+  'pharmacy',
+  'shop',
+  'groomer',
+  'trainer',
+  'cafe',
+  'other',
+] as const satisfies readonly PlaceCategory[];
+
+export type NewPlaceErrorKey = 'places.new.errors.name' | 'places.new.errors.category';
+
+export interface NewPlaceValues {
+  name: string;
+  category: PlaceCategory | null;
+  visibility: 'private' | 'public';
+}
+
+/** Checks the form the same way the server does; returns what to show under each field. */
+export function validateNewPlace(
+  values: NewPlaceValues,
+):
+  | { ok: true; name: string; category: PlaceCategory }
+  | { ok: false; errors: { name?: NewPlaceErrorKey; category?: NewPlaceErrorKey } } {
+  const name = values.name.trim().replace(/\s+/g, ' ');
+  const errors: { name?: NewPlaceErrorKey; category?: NewPlaceErrorKey } = {};
+  if (name.length < 2 || name.length > 80) errors.name = 'places.new.errors.name';
+  if (!values.category) errors.category = 'places.new.errors.category';
+  if (errors.name || errors.category || !values.category) return { ok: false, errors };
+  return { ok: true, name, category: values.category };
+}
+
+export type PlaceSaveErrorKey =
+  'places.new.errors.network' | 'places.new.errors.tooMany' | 'places.new.errors.unknown';
+
+export function placeSaveErrorKey(error: unknown): PlaceSaveErrorKey {
+  if (error instanceof Error && error.message === 'network_error') {
+    return 'places.new.errors.network';
+  }
+  if (typeof error === 'object' && error !== null && 'status' in error && error.status === 409) {
+    return 'places.new.errors.tooMany';
+  }
+  return 'places.new.errors.unknown';
+}
+
+export type OwnStatusKey =
+  'places.own.private' | 'places.own.pending' | 'places.own.rejected' | 'places.own.public';
+
+/** One line under an own marker: who sees it now. */
+export function ownStatusKey(place: {
+  visibility: 'public' | 'private';
+  moderationStatus: 'approved' | 'pending' | 'rejected';
+}): OwnStatusKey {
+  if (place.visibility === 'private') return 'places.own.private';
+  if (place.moderationStatus === 'pending') return 'places.own.pending';
+  if (place.moderationStatus === 'rejected') return 'places.own.rejected';
+  return 'places.own.public';
+}

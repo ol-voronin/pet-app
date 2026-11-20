@@ -1,5 +1,5 @@
 import { api } from '@/features/auth/client';
-import { unwrap } from '@/shared/api/http';
+import { unwrap, unwrapEmpty } from '@/shared/api/http';
 import type { PlaceFilters, PlacesApi } from './api';
 
 /** Filters as query parameters; absent ones are left out rather than sent empty. */
@@ -29,4 +29,7 @@ export const placesApi: PlacesApi = {
   get: (placeId) => unwrap(api.GET('/places/{placeId}', { params: { path: { placeId } } })),
   geocode: async (q, near) =>
     (await unwrap(api.GET('/geocode', { params: { query: { q, ...near } } }))).results,
+  create: (body) => unwrap(api.POST('/places', { body })),
+  remove: (placeId) =>
+    unwrapEmpty(api.DELETE('/places/{placeId}', { params: { path: { placeId } } })),
 };
