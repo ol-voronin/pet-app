@@ -26,6 +26,7 @@
     "owner": "pet-app-team",
     "extra": {
       "apiUrl": "https://pet-app-api-devvoronin-gmailcoms-projects.vercel.app",
+      "sentryDsn": "",
       "eas": {
         "projectId": "805be4a7-fafa-4188-b3f3-65b8effdd423"
       }

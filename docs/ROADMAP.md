@@ -60,9 +60,10 @@
 
 ## Этап 1b — Сервер (неделя 6, полнедели)
 Сервер владельца в Hetzner уже оплачен; БД остаётся в Neon, файлы — в Neon Object Storage. Vercel — запасной staging.
-- [ ] Docker-образ API (многоступенчатый, тот же Node, что в CI, собранный entry); `docker-compose`: API, Caddy (HTTPS), Redis
-- [ ] Деплой из `main` через GitHub Actions по SSH; инструкция для владельца в `apps/api/README.md`
-- [ ] Sentry в mobile и api (бесплатный план Developer; без DSN код готов и молчит)
+- [x] Docker-образ API (многоступенчатый, тот же Node, что в CI, собранный entry); `docker-compose`: API, Caddy (HTTPS), Redis (ADR-0009)
+- [x] Деплой из `main` через GitHub Actions по SSH; инструкция для владельца в `apps/api/README.md`
+- [ ] Первый деплой на сервер: владелец проходит шаги из `apps/api/README.md` (сервер, секреты `SSH_HOST` и `SSH_KEY`), затем приложение переключаем на новый адрес
+- [x] Sentry в mobile и api (бесплатный план Developer; без DSN код готов и молчит) — DSN за владельцем
 
 ## Этап 5 — Карта (неделя 6,5–10)
 - [ ] ADR-0005: MapLibre + свои тайлы одним файлом PMTiles (Protomaps) против бесплатных тарифов MapTiler и Mapbox

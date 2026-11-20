@@ -14,6 +14,7 @@ import type { FamilyService } from './modules/family/service.js';
 import { healthModule } from './modules/health/index.js';
 import { petsModule } from './modules/pets/index.js';
 import type { PetsService } from './modules/pets/service.js';
+import { registerErrorReporting, type ErrorReporter } from './observability/errors.js';
 
 export interface AppOptions {
   version: string;
@@ -26,6 +27,8 @@ export interface AppOptions {
   family?: FamilyService;
   /** Serve Swagger UI on `/docs`. Off by default: used in local development only. */
   docsUi?: boolean;
+  /** Where 5xx errors are reported. Off by default. */
+  errors?: ErrorReporter | undefined;
 }
 
 /** Creates a Fastify instance with our defaults. */
@@ -43,6 +46,8 @@ export async function buildApp(opts: AppOptions) {
 export async function configureApp(app: App, opts: AppOptions) {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
+  // Before the modules, so the hooks cover every route.
+  if (opts.errors) registerErrorReporting(app, opts.errors);
 
   await app.register(swagger, {
     openapi: {
