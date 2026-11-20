@@ -34,6 +34,7 @@ export type PetFormErrorKey =
   | 'pets.form.errors.breedTooLong'
   | 'pets.form.errors.birthDate'
   | 'pets.form.errors.birthDateFuture'
+  | 'pets.form.errors.birthDateTooOld'
   | 'pets.form.errors.chipTooLong';
 
 export type PetFormErrors = Partial<Record<PetFormField, PetFormErrorKey>>;
@@ -106,7 +107,9 @@ export function validatePetForm(
         errors.birthDate ??=
           issue.message === 'birth_date_in_future'
             ? 'pets.form.errors.birthDateFuture'
-            : 'pets.form.errors.birthDate';
+            : issue.message === 'birth_date_too_old'
+              ? 'pets.form.errors.birthDateTooOld'
+              : 'pets.form.errors.birthDate';
       }
     }
   }

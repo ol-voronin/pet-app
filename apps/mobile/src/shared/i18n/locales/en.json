@@ -118,7 +118,8 @@
         "chipTooLong": "The chip number is too long",
         "forbidden": "You are not allowed to change this pet",
         "network": "Cannot reach the server. Check your connection and try again",
-        "unknown": "Could not save. Try again"
+        "unknown": "Could not save. Try again",
+        "birthDateTooOld": "Check the year: a pet cannot be over 40 years old"
       }
     },
     "photo": {
