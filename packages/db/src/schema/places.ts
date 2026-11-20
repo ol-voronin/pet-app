@@ -61,6 +61,12 @@ export const places = pgTable(
     geom: geographyPoint('geom')
       .notNull()
       .generatedAlwaysAs(sql`(ST_SetSRID(ST_MakePoint(lon, lat), 4326)::geography)`),
+    /** Every spelling of the name in lower case, for fuzzy search (pg_trgm). Computed by Postgres. */
+    searchText: text('search_text')
+      .notNull()
+      .generatedAlwaysAs(
+        sql`(lower(coalesce(name, '') || ' ' || coalesce(names->>'default', '') || ' ' || coalesce(names->>'uk', '') || ' ' || coalesce(names->>'ru', '') || ' ' || coalesce(names->>'en', '')))`,
+      ),
     address: text('address'),
     city: text('city'),
     /** E.164. A JSON array, not `text[]`: the admin panel (Directus) cannot edit Postgres arrays. */
@@ -97,6 +103,7 @@ export const places = pgTable(
     index('places_geom_idx').using('gist', t.geom),
     uniqueIndex('places_osm_idx').on(t.osmType, t.osmId),
     index('places_category_idx').on(t.category),
+    index('places_search_idx').using('gin', t.searchText.op('gin_trgm_ops')),
     index('places_moderation_idx')
       .on(t.moderationStatus)
       .where(sql`${t.visibility} = 'public' and ${t.source} = 'user'`),

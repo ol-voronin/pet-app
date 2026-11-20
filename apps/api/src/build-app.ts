@@ -14,6 +14,8 @@ import type { FamilyService } from './modules/family/service.js';
 import { healthModule } from './modules/health/index.js';
 import { petsModule } from './modules/pets/index.js';
 import type { PetsService } from './modules/pets/service.js';
+import { placesModule } from './modules/places/index.js';
+import type { PlacesService } from './modules/places/service.js';
 import { registerErrorReporting, type ErrorReporter } from './observability/errors.js';
 
 export interface AppOptions {
@@ -25,6 +27,8 @@ export interface AppOptions {
   pets?: PetsService;
   /** Family access: invites and members; needs `auth`. */
   family?: FamilyService;
+  /** Map places and address search; needs `auth`. */
+  places?: PlacesService;
   /** Serve Swagger UI on `/docs`. Off by default: used in local development only. */
   docsUi?: boolean;
   /** Where 5xx errors are reported. Off by default. */
@@ -73,6 +77,9 @@ export async function configureApp(app: App, opts: AppOptions) {
   if (opts.auth) await app.register(authModule, { service: opts.auth });
   if (opts.auth && opts.pets) {
     await app.register(petsModule, { service: opts.pets, auth: opts.auth });
+  }
+  if (opts.auth && opts.places) {
+    await app.register(placesModule, { service: opts.places, auth: opts.auth });
   }
   if (opts.auth && opts.family) {
     await app.register(familyModule, { service: opts.family, auth: opts.auth });

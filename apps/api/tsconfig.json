@@ -3,7 +3,17 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "types": ["node"]
+    "types": ["node"],
+    // Repeated from tsconfig.base.json on purpose: Vercel's build type-checks this package with the
+    // options written in this file only, and without `strict` zod infers every field as optional.
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true
   },
   "include": ["src"]
 }
