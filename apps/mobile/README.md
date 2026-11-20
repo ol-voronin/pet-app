@@ -23,6 +23,11 @@ pnpm -F mobile start     # Metro for the installed development build
   `app/(auth)` — sign-in (phone, then code); the root layout shows it until the user is signed in.
 - `src/features/auth` — session: tokens in SecureStore, access token refreshed before it expires,
   signed in after a restart without network. Screens read `useSession()`.
+- `src/features/pets` — pets home, card and form. Logic lives in plain modules with tests (`form.ts`, `age.ts`,
+  `photo.ts`, `queries.ts`); `hooks.ts` and `components/` are thin wrappers. Routes: `app/pets/new`,
+  `app/pets/[petId]`, `app/pets/[petId]/edit`.
+- `src/shared/api` — HTTP errors (`ApiError`, `NetworkError`) and the TanStack Query cache (cleared on sign-out).
+  Signed-in requests go through `src/features/auth/client.ts`, which adds the access token.
 - `src/shared/i18n` — i18next; `uk` default, `en` second; device language via expo-localization,
   anything unsupported falls back to `uk`. UI strings only via `t('…')`.
 - `src/shared/ui` — design system (tokens + components). No hard-coded colors/spacing elsewhere.
