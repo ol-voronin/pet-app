@@ -71,7 +71,7 @@ describe('places routes', () => {
     });
     const geocoder = new PhotonGeocoder({
       minIntervalMs: 0,
-      fetch: ((url: string) => {
+      fetch: (url: string) => {
         photonCalls.push(url);
         if (photonDown) return Promise.resolve(new Response('no', { status: 502 }));
         return Promise.resolve(
@@ -95,7 +95,7 @@ describe('places routes', () => {
             ],
           }),
         );
-      }) as typeof fetch,
+      },
     });
     const places = new PlacesService({ repo: new MemoryPlacesRepo(PLACES), geocoder });
     app = await buildApp({ version: 'test', auth, places });

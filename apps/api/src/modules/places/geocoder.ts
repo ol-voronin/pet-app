@@ -26,9 +26,28 @@ interface PhotonFeature {
   };
 }
 
+/**
+ * The part of `fetch` this module uses, spelled out: the global `Response` type is not the same in
+ * every build (Vercel's type check does not see `ok` / `status` / `json` on it).
+ */
+export interface HttpResponse {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}
+export type HttpGet = (
+  url: string,
+  init: { headers: Record<string, string>; signal: AbortSignal },
+) => Promise<HttpResponse>;
+
+const globalGet: HttpGet = async (url, init) => {
+  const response: unknown = await fetch(url, init);
+  return response as HttpResponse;
+};
+
 export interface PhotonOptions {
   url?: string;
-  fetch?: typeof fetch;
+  fetch?: HttpGet;
   now?: () => number;
   /** How long an answer is reused. Addresses do not move. */
   cacheTtlMs?: number;
@@ -47,7 +66,7 @@ export class PhotonGeocoder implements Geocoder {
   private lastCallAt = 0;
   private queue: Promise<unknown> = Promise.resolve();
   private readonly url: string;
-  private readonly fetchImpl: typeof fetch;
+  private readonly fetchImpl: HttpGet;
   private readonly now: () => number;
   private readonly ttl: number;
   private readonly size: number;
@@ -56,7 +75,7 @@ export class PhotonGeocoder implements Geocoder {
 
   constructor(options: PhotonOptions = {}) {
     this.url = options.url ?? PHOTON_URL;
-    this.fetchImpl = options.fetch ?? fetch;
+    this.fetchImpl = options.fetch ?? globalGet;
     this.now = options.now ?? Date.now;
     this.ttl = options.cacheTtlMs ?? 24 * 60 * 60 * 1000;
     this.size = options.cacheSize ?? 1000;
