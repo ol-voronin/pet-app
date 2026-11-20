@@ -12,6 +12,7 @@
     "start": "tsx src/index.ts",
     "openapi:export": "tsx src/scripts/export-openapi.ts ../../packages/shared/openapi.json",
     "osm:import": "tsx src/scripts/import-osm.ts",
+    "catalog:seed": "tsx src/scripts/seed-catalog.ts",
     "build": "tsc --noEmit",
     "build:server": "tsc -p tsconfig.build.json"
   },
