@@ -127,8 +127,10 @@ curl -fsSL https://raw.githubusercontent.com/ol-voronin/pet-app/main/deploy/setu
    ```bash
    ss -ltnp | grep -E ':(80|443) '
    ```
-   Пусто — всё хорошо. Если порты заняты другим веб-сервером, остановись и напиши в чат: Caddy не запустится,
-   нужно будет пустить API через тот веб-сервер.
+   Пусто — всё хорошо: в `.env` будет `COMPOSE_PROFILES=caddy`, и запустится наш Caddy. Если порты держит Caddy
+   другого проекта, наш не нужен: в его Caddyfile добавляется отдельный блок для `API_DOMAIN` с
+   `reverse_proxy 127.0.0.1:<API_HOST_PORT>` (скрипт делает это сам, между метками `# >>> pet-app` и `# <<< pet-app`,
+   с копией файла и откатом, если Caddy не примет). Если порты держит что-то другое — напиши в чат.
 3. **Пользователь для деплоя и папка.** Группа `docker` даёт права, равные `root`, поэтому ключ этого
    пользователя храним только в секретах GitHub.
    ```bash
@@ -199,7 +201,8 @@ curl -fsSL https://raw.githubusercontent.com/ol-voronin/pet-app/main/deploy/setu
    ```
    Хост — из строки подключения Neon с выключенным «Connection pooling»: через pooler админка не работает надёжно.
    Затем: `chown deploy:deploy /opt/pet-app/directus.env && chmod 600 /opt/pet-app/directus.env`.
-3. **Включить.** В `/opt/pet-app/.env` добавить строку `COMPOSE_PROFILES=admin`, затем:
+3. **Включить.** В `/opt/pet-app/.env` дописать `admin` в `COMPOSE_PROFILES` (`COMPOSE_PROFILES=caddy,admin`, а если
+   строки нет — `COMPOSE_PROFILES=admin`), затем:
    ```bash
    cd /opt/pet-app && docker compose up -d
    ```
