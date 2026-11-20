@@ -142,6 +142,7 @@
 | Решения по архитектуре | `docs/adr/` |
 | Уроки и правила работы | `docs/LESSONS.md` |
 | Правила для Claude Code | `CLAUDE.md`, `.claude/`, `START_HERE.md` |
+| Команда агентов: роли, путь PR, решения владельца | `docs/TEAM.md`, `.claude/agents/` |
 | Прототип рендера аватара | `tools/avatar/balloon_pets.py`, пример — `docs/design/avatar-sample.png` |
 | Вайрфреймы и пробы UI (29 экранов; актуальный стиль — ряды «Проба 3») | Канвас: https://claude.ai/artifact/6kvAiEDBG6svFBe2KikX7q |
 | User flows — доска (те же 6 сценариев, что в `docs/USER_FLOWS.md`) | Доска: https://claude.ai/artifact/Gc8k33dG3S2h28ckRdhsK4 |
