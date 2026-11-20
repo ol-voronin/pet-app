@@ -112,6 +112,13 @@ The whole stack: copy `deploy/` to a folder, add `.env` with `API_DOMAIN=localho
 ### Пошагово для владельца: сервер
 Нужно один раз. Команды — на сервере под `root`, если не сказано иначе. Ничего платного: сервер уже есть.
 
+**Быстрый путь — одна команда на сервере** (делает шаги 1–7 ниже и печатает два секрета для GitHub):
+```bash
+curl -fsSL https://raw.githubusercontent.com/ol-voronin/pet-app/main/deploy/setup-server.sh | sudo bash
+```
+Спросит адрес для API (Enter — бесплатный `<IP>.sslip.io`) и строку подключения к Neon. Дальше — раздел «GitHub» ниже.
+Ниже — то же самое руками.
+
 1. **Docker.** Проверить: `docker compose version`. Если команды нет:
    ```bash
    curl -fsSL https://get.docker.com | sh
