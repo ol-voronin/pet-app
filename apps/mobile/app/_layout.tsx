@@ -45,6 +45,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="welcome" />
           <Stack.Screen name="pets/new" options={petScreen} />
+          <Stack.Screen name="places/new" options={petScreen} />
           <Stack.Screen name="pets/[petId]/index" options={petScreen} />
           <Stack.Screen name="pets/[petId]/edit" options={petScreen} />
           <Stack.Screen name="invite/new" options={petScreen} />

@@ -1,8 +1,10 @@
-import { places, type Db } from '@pet-app/db';
-import { and, asc, eq, gte, inArray, isNull, lte, sql, type SQL } from 'drizzle-orm';
+import { petMembers, pets, places, type Db } from '@pet-app/db';
+import { and, asc, eq, gte, inArray, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { MIN_SIMILARITY } from './search-text.js';
 import type {
   Box,
+  NewOwnPlace,
   PlaceFilters,
   PlaceRecord,
   PlacesRepo,
@@ -25,34 +27,62 @@ const columns = {
   attributes: places.attributes,
   source: places.source,
   verifiedAt: places.verifiedAt,
+  visibility: places.visibility,
+  moderationStatus: places.moderationStatus,
+  createdBy: places.createdBy,
 };
 
 const geography = (p: Point) => sql`ST_SetSRID(ST_MakePoint(${p.lon}, ${p.lat}), 4326)::geography`;
-
-/** What everyone may see, narrowed by the filters of the request. */
-function visible(filters: PlaceFilters, ...more: (SQL | undefined)[]): SQL | undefined {
-  return and(
-    eq(places.visibility, 'public'),
-    eq(places.moderationStatus, 'approved'),
-    isNull(places.deletedAt),
-    isNull(places.osmMissingSince),
-    filters.categories.length > 0 ? inArray(places.category, filters.categories) : undefined,
-    filters.open247 ? sql`${places.attributes} @> '{"open247": true}'::jsonb` : undefined,
-    ...more,
-  );
-}
 
 /** Postgres + PostGIS implementation of PlacesRepo. */
 export class DrizzlePlacesRepo implements PlacesRepo {
   constructor(private readonly db: Db) {}
 
-  inBox(box: Box, filters: PlaceFilters, limit: number): Promise<PlaceRecord[]> {
+  /** People who share a (not deleted) pet with the viewer. The viewer is added separately. */
+  private familyOf(viewerId: string) {
+    const mine = alias(petMembers, 'my_membership');
+    const theirs = alias(petMembers, 'their_membership');
+    return this.db
+      .select({ userId: theirs.userId })
+      .from(mine)
+      .innerJoin(theirs, eq(theirs.petId, mine.petId))
+      .innerJoin(pets, and(eq(pets.id, mine.petId), isNull(pets.deletedAt)))
+      .where(eq(mine.userId, viewerId));
+  }
+
+  /** What this viewer may see (see PlacesRepo), narrowed by the filters of the request. */
+  private visible(
+    viewerId: string,
+    filters: PlaceFilters,
+    ...more: (SQL | undefined)[]
+  ): SQL | undefined {
+    return and(
+      isNull(places.deletedAt),
+      or(
+        and(
+          eq(places.visibility, 'public'),
+          eq(places.moderationStatus, 'approved'),
+          isNull(places.osmMissingSince),
+        ),
+        and(
+          eq(places.source, 'user'),
+          or(eq(places.createdBy, viewerId), inArray(places.createdBy, this.familyOf(viewerId))),
+        ),
+      ),
+      filters.categories.length > 0 ? inArray(places.category, filters.categories) : undefined,
+      filters.open247 ? sql`${places.attributes} @> '{"open247": true}'::jsonb` : undefined,
+      ...more,
+    );
+  }
+
+  inBox(viewerId: string, box: Box, filters: PlaceFilters, limit: number): Promise<PlaceRecord[]> {
     return (
       this.db
         .select(columns)
         .from(places)
         .where(
-          visible(
+          this.visible(
+            viewerId,
             filters,
             gte(places.lon, box.west),
             lte(places.lon, box.east),
@@ -67,6 +97,7 @@ export class DrizzlePlacesRepo implements PlacesRepo {
   }
 
   async nearby(
+    viewerId: string,
     center: Point,
     radiusM: number,
     filters: PlaceFilters,
@@ -76,13 +107,20 @@ export class DrizzlePlacesRepo implements PlacesRepo {
     const rows = await this.db
       .select({ ...columns, distanceM: distance })
       .from(places)
-      .where(visible(filters, sql`ST_DWithin(${places.geom}, ${geography(center)}, ${radiusM})`))
+      .where(
+        this.visible(
+          viewerId,
+          filters,
+          sql`ST_DWithin(${places.geom}, ${geography(center)}, ${radiusM})`,
+        ),
+      )
       .orderBy(distance)
       .limit(limit);
     return rows.map((r) => ({ ...r, distanceM: Math.round(r.distanceM) }));
   }
 
   async search(
+    viewerId: string,
     variants: string[],
     near: Point | undefined,
     filters: PlaceFilters,
@@ -104,7 +142,7 @@ export class DrizzlePlacesRepo implements PlacesRepo {
     const rows = await this.db
       .select({ ...columns, distanceM: distance ?? sql<null>`null::float8`, score })
       .from(places)
-      .where(visible(filters, sql`${score} >= ${MIN_SIMILARITY}`))
+      .where(this.visible(viewerId, filters, sql`${score} >= ${MIN_SIMILARITY}`))
       .orderBy(sql`${score} desc`, ...(distance ? [sql`${distance} asc`] : []), asc(places.id))
       .limit(limit);
     return rows.map(({ score: _score, ...r }) => ({
@@ -113,12 +151,59 @@ export class DrizzlePlacesRepo implements PlacesRepo {
     }));
   }
 
-  async byId(id: string): Promise<PlaceRecord | undefined> {
+  async byId(viewerId: string, id: string): Promise<PlaceRecord | undefined> {
     const [row] = await this.db
       .select(columns)
       .from(places)
-      .where(visible({ categories: [] }, eq(places.id, id)))
+      .where(this.visible(viewerId, { categories: [] }, eq(places.id, id)))
       .limit(1);
     return row;
+  }
+
+  async createOwn(place: NewOwnPlace): Promise<PlaceRecord> {
+    const [row] = await this.db
+      .insert(places)
+      .values({
+        id: place.id,
+        category: place.category,
+        name: place.name,
+        lat: place.lat,
+        lon: place.lon,
+        source: 'user',
+        visibility: place.visibility,
+        moderationStatus: place.moderationStatus,
+        createdBy: place.authorId,
+        createdAt: place.now,
+        updatedAt: place.now,
+      })
+      .returning(columns);
+    if (!row) throw new Error('insert returned no row');
+    return row;
+  }
+
+  async countOwn(authorId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(places)
+      .where(
+        and(eq(places.source, 'user'), eq(places.createdBy, authorId), isNull(places.deletedAt)),
+      );
+    return row?.count ?? 0;
+  }
+
+  async deleteOwn(authorId: string, id: string, now: Date): Promise<boolean> {
+    const rows = await this.db
+      .update(places)
+      .set({ deletedAt: now, updatedAt: now })
+      .where(
+        and(
+          eq(places.id, id),
+          eq(places.source, 'user'),
+          eq(places.createdBy, authorId),
+          isNull(places.deletedAt),
+        ),
+      )
+      .returning({ id: places.id });
+    return rows.length > 0;
   }
 }

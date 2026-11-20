@@ -1,6 +1,15 @@
+import type { Place } from '@pet-app/shared';
+import { QueryClient } from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
 import type { PlaceFilters, PlacesApi } from './api';
-import { geocodeQuery, nearbyPlacesQuery, placeKeys, searchPlacesQuery } from './queries';
+import {
+  createPlaceMutation,
+  deletePlaceMutation,
+  geocodeQuery,
+  nearbyPlacesQuery,
+  placeKeys,
+  searchPlacesQuery,
+} from './queries';
 
 const none: PlaceFilters = { categories: [], open247: false };
 const center = { lat: 49.99351, lon: 36.23044 };
@@ -9,8 +18,17 @@ function fakeApi() {
   const nearby = vi.fn<PlacesApi['nearby']>(() => Promise.resolve([]));
   const search = vi.fn<PlacesApi['search']>(() => Promise.resolve([]));
   const geocode = vi.fn<PlacesApi['geocode']>(() => Promise.resolve([]));
-  const api: PlacesApi = { nearby, search, geocode, get: vi.fn<PlacesApi['get']>() };
-  return { api, nearby, search, geocode };
+  const create = vi.fn<PlacesApi['create']>();
+  const remove = vi.fn<PlacesApi['remove']>(() => Promise.resolve());
+  const api: PlacesApi = {
+    nearby,
+    search,
+    geocode,
+    get: vi.fn<PlacesApi['get']>(),
+    create,
+    remove,
+  };
+  return { api, nearby, search, geocode, create, remove };
 }
 
 describe('place queries', () => {
@@ -51,5 +69,57 @@ describe('place queries', () => {
     expect(geocode.retry).toBe(false);
     await geocode.queryFn();
     expect(geocodeFn).toHaveBeenCalledWith('сумська 10', center);
+  });
+});
+
+describe('own marker mutations', () => {
+  const marker: Place = {
+    id: '00000000-0000-4000-8000-000000000001',
+    category: 'dog_park',
+    name: 'Наш майданчик',
+    lat: 50.02,
+    lon: 36.21,
+    open247: false,
+    mine: true,
+    address: null,
+    city: null,
+    phones: [],
+    website: null,
+    openingHours: null,
+    emergency: false,
+    fenced: false,
+    source: 'user',
+    verifiedAt: null,
+    visibility: 'private',
+    moderationStatus: 'approved',
+    canDelete: true,
+  };
+
+  it('puts a new marker into the cache and marks every list stale', async () => {
+    const { api } = fakeApi();
+    const client = new QueryClient();
+    const listKey = placeKeys.nearby(center, 5000, none);
+    client.setQueryData(listKey, []);
+
+    await createPlaceMutation(api, client).onSuccess(marker);
+
+    expect(client.getQueryData(placeKeys.detail(marker.id))).toEqual(marker);
+    expect(client.getQueryState(listKey)?.isInvalidated).toBe(true);
+  });
+
+  it('forgets a removed marker and marks every list stale', async () => {
+    const { api, remove } = fakeApi();
+    const client = new QueryClient();
+    const listKey = placeKeys.nearby(center, 5000, none);
+    client.setQueryData(listKey, [marker]);
+    client.setQueryData(placeKeys.detail(marker.id), marker);
+    const mutation = deletePlaceMutation(api, client);
+
+    await mutation.mutationFn(marker.id);
+    await mutation.onSuccess(undefined, marker.id);
+
+    expect(remove).toHaveBeenCalledWith(marker.id);
+    expect(client.getQueryData(placeKeys.detail(marker.id))).toBeUndefined();
+    expect(client.getQueryState(listKey)?.isInvalidated).toBe(true);
   });
 });

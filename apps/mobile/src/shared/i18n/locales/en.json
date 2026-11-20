@@ -308,6 +308,40 @@
       "error": "Could not load the card",
       "cannotOpen": "Could not open an app for this action"
     },
-    "attribution": "Data: © OpenStreetMap"
+    "attribution": "Data: © OpenStreetMap",
+    "new": {
+      "title": "New marker",
+      "open": "Add your own marker",
+      "name": "Name",
+      "namePlaceholder": "For example, the dog run by the park",
+      "category": "What it is",
+      "visibility": "Who sees it",
+      "visibilityPrivate": "Me and family",
+      "visibilityPublic": "Everyone",
+      "privateHint": "You and everyone you share pets with see the marker at once.",
+      "publicHint": "Everyone will see the marker after a moderator checks it. Until then only you and your family see it.",
+      "where": "Where",
+      "whereMe": "Where you are now",
+      "whereAddress": "At the address: {{address}}",
+      "whereUnknown": "First show where it is: find your location or search for an address.",
+      "save": "Save marker",
+      "errors": {
+        "name": "The name must be 2 to 80 characters",
+        "category": "Choose what kind of place it is",
+        "network": "No network. The marker was not saved — try again.",
+        "tooMany": "You already have too many markers. Remove the ones you do not need.",
+        "unknown": "Could not save the marker. Try again."
+      }
+    },
+    "own": {
+      "badge": "Your marker",
+      "private": "You and your family see this marker",
+      "pending": "Waiting for a moderator. For now only you and your family see it",
+      "rejected": "A moderator did not approve the marker for everyone. You and your family still see it",
+      "public": "Everyone sees this marker",
+      "delete": "Delete marker",
+      "deleteConfirm": "Yes, delete",
+      "deleteError": "Could not delete the marker. Try again."
+    }
   }
 }

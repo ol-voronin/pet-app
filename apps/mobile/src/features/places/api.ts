@@ -1,4 +1,10 @@
-import type { GeocodeResult, Place, PlaceCategory, PlaceListItem } from '@pet-app/shared';
+import type {
+  CreatePlaceBody,
+  GeocodeResult,
+  Place,
+  PlaceCategory,
+  PlaceListItem,
+} from '@pet-app/shared';
 
 export interface PlaceFilters {
   /** Empty — every category. */
@@ -17,4 +23,8 @@ export interface PlacesApi {
   search(query: string, near: Point, filters: PlaceFilters): Promise<PlaceListItem[]>;
   get(placeId: string): Promise<Place>;
   geocode(query: string, near: Point): Promise<GeocodeResult[]>;
+  /** Adds the person's own marker. */
+  create(body: CreatePlaceBody): Promise<Place>;
+  /** Removes the person's own marker. */
+  remove(placeId: string): Promise<void>;
 }

@@ -45,13 +45,18 @@ Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` b
 `OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
 
 ## Map API
-`src/modules/places`: read-only routes behind sign-in. Only public, approved, not hidden places are returned.
+`src/modules/places`: routes behind sign-in. A person gets public, approved, not hidden places and their family's own markers.
 - `GET /places?bbox=west,south,east,north&categories=clinic,pharmacy&open247=true` — pins for the visible map
   (up to 1000; `truncated` says there were more).
 - `GET /places/nearby?lat=&lon=&radiusM=&limit=` — list by distance.
 - `GET /places/search?q=&lat=&lon=` — by name. Forgives typos (Postgres `pg_trgm`), a Russian spelling stored in
   OSM and a wrong keyboard layout (`dtnfgntrf` → `ветаптека`); see `search-text.ts`.
 - `GET /places/:placeId` — the card.
+- `POST /places` — the person's own marker (`name`, `category`, `lat`, `lon`, `visibility`). `private` (default) is
+  seen at once by the author and their family — everyone who shares a pet with them. `public` waits for a moderator
+  (`moderation_status = pending`, the "Черга модерації" view in the admin panel); until approved only the family sees it.
+  At most 100 own markers per person. `DELETE /places/:placeId` — the author only; the row is kept (`deleted_at`).
+- Every read is per viewer: public approved places plus own markers of the viewer's family. `mine` marks the latter.
 - `GET /geocode?q=&lat=&lon=` — address search in Ukraine through Photon (ADR-0005), cached for a day, one
   request at a time. What leaves our server: the typed address and the map centre rounded to about 1 km — no
   user id and no phone IP. `GEOCODER_URL` points it at another Photon server; when it is down the route answers 503.

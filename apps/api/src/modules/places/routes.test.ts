@@ -1,4 +1,5 @@
 import {
+  MAX_OWN_PLACES,
   authTokensSchema,
   geocodeResponseSchema,
   otpRequestResponseSchema,
@@ -31,8 +32,12 @@ const place = (n: number, extra: Partial<MemoryPlace>): MemoryPlace => ({
   attributes: {},
   source: 'osm',
   verifiedAt: null,
+  visibility: 'public',
+  moderationStatus: 'approved',
+  createdBy: null,
   ...extra,
 });
+const SOMEONE = '99999999-0000-4000-8000-000000000000';
 
 // Kharkiv centre is about 50.00, 36.23.
 const PLACES: MemoryPlace[] = [
@@ -50,8 +55,13 @@ const PLACES: MemoryPlace[] = [
   place(3, { category: 'pharmacy', name: 'Ветаптека Зооленд', lat: 49.99, lon: 36.25 }),
   place(4, { category: 'dog_park', lat: 50.01, lon: 36.24, attributes: { fenced: true } }),
   place(5, { category: 'shop', name: 'MasterZoo', lat: 50.45, lon: 30.52 }), // Kyiv
-  place(6, { name: 'Чекає модерації', source: 'user', moderationStatus: 'pending' }),
-  place(7, { name: 'Особиста мітка', source: 'user', visibility: 'private' }),
+  place(6, {
+    name: 'Чекає модерації',
+    source: 'user',
+    moderationStatus: 'pending',
+    createdBy: SOMEONE,
+  }),
+  place(7, { name: 'Особиста мітка', source: 'user', visibility: 'private', createdBy: SOMEONE }),
   place(8, { name: 'Закрита клініка', deletedAt: new Date() }),
   place(9, { name: 'Зникла з OSM', osmMissingSince: new Date() }),
 ];
@@ -59,6 +69,9 @@ const PLACES: MemoryPlace[] = [
 describe('places routes', () => {
   let app: App;
   let headers: { authorization: string };
+  const repo = new MemoryPlacesRepo(PLACES, (userId) => families.get(userId) ?? new Set([userId]));
+  /** userId → everyone who shares a pet with them (themselves included). */
+  const families = new Map<string, Set<string>>();
   const sender = new LogOtpSender();
   const photonCalls: string[] = [];
   let photonDown = false;
@@ -97,22 +110,23 @@ describe('places routes', () => {
         );
       },
     });
-    const places = new PlacesService({ repo: new MemoryPlacesRepo(PLACES), geocoder });
+    const places = new PlacesService({ repo, geocoder });
     app = await buildApp({ version: 'test', auth, places });
 
-    const req = await app.inject({
-      method: 'POST',
-      url: '/auth/otp/request',
-      payload: { phone: '+380501112233' },
-    });
+    headers = (await login('+380501112233')).headers;
+  });
+
+  async function login(phone: string) {
+    const req = await app.inject({ method: 'POST', url: '/auth/otp/request', payload: { phone } });
     const { challengeId } = otpRequestResponseSchema.parse(req.json());
     const verify = await app.inject({
       method: 'POST',
       url: '/auth/otp/verify',
       payload: { challengeId, code: sender.sent.at(-1)?.code },
     });
-    headers = { authorization: `Bearer ${authTokensSchema.parse(verify.json()).accessToken}` };
-  });
+    const tokens = authTokensSchema.parse(verify.json());
+    return { headers: { authorization: `Bearer ${tokens.accessToken}` }, userId: tokens.user.id };
+  }
   afterAll(async () => {
     await app.close();
   });
@@ -245,5 +259,138 @@ describe('places routes', () => {
     expect(res.json()).toEqual({ error: 'geocoder_unavailable' });
     expect((await get('/places/search?q=shanty')).statusCode).toBe(200);
     expect((await get('/geocode?q=ab')).statusCode).toBe(400);
+  });
+
+  describe('own markers', () => {
+    const marker = { name: 'Наш майданчик', category: 'dog_park', lat: 50.02, lon: 36.21 };
+    const post = (h: { authorization: string }, payload: object) =>
+      app.inject({ method: 'POST', url: '/places', headers: h, payload });
+    const see = async (h: { authorization: string }, placeId: string) =>
+      (await app.inject({ method: 'GET', url: `/places/${placeId}`, headers: h })).statusCode;
+
+    it('shows a private marker to the author and their family at once, and to nobody else', async () => {
+      const author = await login('+380502000001');
+      const partner = await login('+380502000002');
+      const stranger = await login('+380502000003');
+      const household = new Set([author.userId, partner.userId]);
+      families.set(author.userId, household);
+      families.set(partner.userId, household);
+
+      const res = await post(author.headers, marker);
+
+      expect(res.statusCode).toBe(201);
+      const created = placeSchema.parse(res.json());
+      expect(created).toMatchObject({
+        name: 'Наш майданчик',
+        source: 'user',
+        visibility: 'private',
+        moderationStatus: 'approved',
+        mine: true,
+        canDelete: true,
+        verifiedAt: null,
+      });
+
+      expect(await see(author.headers, created.id)).toBe(200);
+      expect(await see(stranger.headers, created.id)).toBe(404);
+      const forPartner = await app.inject({
+        method: 'GET',
+        url: `/places/${created.id}`,
+        headers: partner.headers,
+      });
+      expect(placeSchema.parse(forPartner.json())).toMatchObject({ mine: true, canDelete: false });
+
+      const nearby = (h: { authorization: string }) =>
+        app.inject({
+          method: 'GET',
+          url: '/places/nearby?lat=50.02&lon=36.21&radiusM=200',
+          headers: h,
+        });
+      expect(placeListSchema.parse((await nearby(partner.headers)).json()).places).toMatchObject([
+        { id: created.id, mine: true },
+      ]);
+      expect(placeListSchema.parse((await nearby(stranger.headers)).json()).places).toEqual([]);
+
+      const search = await app.inject({
+        method: 'GET',
+        url: `/places/search?q=${encodeURIComponent('наш майданчик')}`,
+        headers: stranger.headers,
+      });
+      expect(placeListSchema.parse(search.json()).places).toEqual([]);
+    });
+
+    it('keeps a public marker from strangers until a moderator approves it', async () => {
+      const author = await login('+380502000004');
+      const stranger = await login('+380502000005');
+
+      const res = await post(author.headers, {
+        ...marker,
+        name: 'Кафе з собаками',
+        category: 'cafe',
+        visibility: 'public',
+      });
+      const created = placeSchema.parse(res.json());
+
+      expect(created).toMatchObject({
+        visibility: 'public',
+        moderationStatus: 'pending',
+        mine: true,
+      });
+      expect(await see(author.headers, created.id)).toBe(200);
+      expect(await see(stranger.headers, created.id)).toBe(404);
+
+      // What the moderator does in the admin panel.
+      const row = repo.rows.find((p) => p.id === created.id);
+      if (row) row.moderationStatus = 'approved';
+
+      const forStranger = await app.inject({
+        method: 'GET',
+        url: `/places/${created.id}`,
+        headers: stranger.headers,
+      });
+      expect(placeSchema.parse(forStranger.json())).toMatchObject({
+        name: 'Кафе з собаками',
+        mine: false,
+        canDelete: false,
+      });
+    });
+
+    it('lets only the author remove a marker, and keeps the row', async () => {
+      const author = await login('+380502000006');
+      const partner = await login('+380502000007');
+      const household = new Set([author.userId, partner.userId]);
+      families.set(author.userId, household);
+      families.set(partner.userId, household);
+      const created = placeSchema.parse((await post(author.headers, marker)).json());
+      const del = (h: { authorization: string }, placeId: string) =>
+        app.inject({ method: 'DELETE', url: `/places/${placeId}`, headers: h });
+
+      expect((await del(partner.headers, created.id)).statusCode).toBe(404);
+      expect((await del(author.headers, id(1))).statusCode).toBe(404); // an imported place
+      expect((await del(author.headers, created.id)).statusCode).toBe(204);
+      expect((await del(author.headers, created.id)).statusCode).toBe(404);
+
+      expect(await see(author.headers, created.id)).toBe(404);
+      expect(repo.rows.find((p) => p.id === created.id)?.deletedAt).toBeInstanceOf(Date);
+    });
+
+    it('validates the marker and limits how many one person may keep', async () => {
+      const author = await login('+380502000008');
+
+      expect((await post(author.headers, { ...marker, name: 'x' })).statusCode).toBe(400);
+      expect((await post(author.headers, { ...marker, category: 'zoo' })).statusCode).toBe(400);
+      expect((await post(author.headers, { ...marker, lat: 120 })).statusCode).toBe(400);
+      expect(
+        (await app.inject({ method: 'POST', url: '/places', payload: marker })).statusCode,
+      ).toBe(401);
+
+      for (let n = 0; n < MAX_OWN_PLACES; n += 1) {
+        repo.rows.push(
+          place(1000 + n, { source: 'user', visibility: 'private', createdBy: author.userId }),
+        );
+      }
+      const res = await post(author.headers, marker);
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: 'too_many_places' });
+    });
   });
 });

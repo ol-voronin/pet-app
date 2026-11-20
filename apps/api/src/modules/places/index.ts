@@ -1,4 +1,5 @@
 import {
+  createPlaceBodySchema,
   errorResponseSchema,
   geocodeQuerySchema,
   geocodeResponseSchema,
@@ -12,8 +13,9 @@ import {
 } from '@pet-app/shared';
 import type { FastifyError } from 'fastify';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { AuthError } from '../auth/errors.js';
-import { createAuthGuard } from '../auth/guard.js';
+import { createAuthGuard, requireUserId } from '../auth/guard.js';
 import type { AuthService } from '../auth/service.js';
 import { PlaceError } from './errors.js';
 import type { PlacesService } from './service.js';
@@ -22,7 +24,7 @@ const errors = { 400: errorResponseSchema, 401: errorResponseSchema };
 const security = [{ bearerAuth: [] }];
 const tags = ['places'];
 
-/** Map places: pins for the visible area, lists, search by name and by address. Read-only. */
+/** Map places: pins for the visible area, lists, search by name and by address, and a person's own markers. */
 export const placesModule: FastifyPluginAsyncZod<{
   service: PlacesService;
   auth: AuthService;
@@ -50,7 +52,7 @@ export const placesModule: FastifyPluginAsyncZod<{
         response: { 200: placesInBoxSchema, ...errors },
       },
     },
-    (req) => service.inBox(req.query),
+    (req) => service.inBox(requireUserId(req), req.query),
   );
 
   app.get(
@@ -65,7 +67,7 @@ export const placesModule: FastifyPluginAsyncZod<{
         response: { 200: placeListSchema, ...errors },
       },
     },
-    async (req) => ({ places: await service.nearby(req.query) }),
+    async (req) => ({ places: await service.nearby(requireUserId(req), req.query) }),
   );
 
   app.get(
@@ -80,7 +82,7 @@ export const placesModule: FastifyPluginAsyncZod<{
         response: { 200: placeListSchema, ...errors },
       },
     },
-    async (req) => ({ places: await service.search(req.query) }),
+    async (req) => ({ places: await service.search(requireUserId(req), req.query) }),
   );
 
   app.get(
@@ -95,7 +97,41 @@ export const placesModule: FastifyPluginAsyncZod<{
         response: { 200: placeSchema, ...errors, 404: errorResponseSchema },
       },
     },
-    (req) => service.get(req.params.placeId),
+    (req) => service.get(requireUserId(req), req.params.placeId),
+  );
+
+  app.post(
+    '/places',
+    {
+      schema: {
+        operationId: 'createPlace',
+        tags,
+        summary: 'Add own marker: private at once, public after moderation',
+        security,
+        body: createPlaceBodySchema,
+        response: { 201: placeSchema, ...errors, 409: errorResponseSchema },
+      },
+    },
+    async (req, reply) =>
+      reply.status(201).send(await service.createOwn(requireUserId(req), req.body)),
+  );
+
+  app.delete(
+    '/places/:placeId',
+    {
+      schema: {
+        operationId: 'deletePlace',
+        tags,
+        summary: 'Remove own marker',
+        security,
+        params: placeParamsSchema,
+        response: { 204: z.null(), ...errors, 404: errorResponseSchema },
+      },
+    },
+    async (req, reply) => {
+      await service.deleteOwn(requireUserId(req), req.params.placeId);
+      return reply.status(204).send(null);
+    },
   );
 
   app.get(

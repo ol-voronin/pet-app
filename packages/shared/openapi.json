@@ -1062,6 +1062,9 @@
           },
           "open247": {
             "type": "boolean"
+          },
+          "mine": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -1070,7 +1073,8 @@
           "name",
           "lat",
           "lon",
-          "open247"
+          "open247",
+          "mine"
         ]
       },
       "PlaceListItemInput": {
@@ -1109,6 +1113,9 @@
           "open247": {
             "type": "boolean"
           },
+          "mine": {
+            "type": "boolean"
+          },
           "address": {
             "type": [
               "string",
@@ -1135,6 +1142,7 @@
           "lat",
           "lon",
           "open247",
+          "mine",
           "address",
           "distanceM"
         ]
@@ -1173,6 +1181,9 @@
             "type": "number"
           },
           "open247": {
+            "type": "boolean"
+          },
+          "mine": {
             "type": "boolean"
           },
           "address": {
@@ -1230,6 +1241,24 @@
                 "type": "null"
               }
             ]
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "moderationStatus": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "pending",
+              "rejected"
+            ]
+          },
+          "canDelete": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -1239,6 +1268,7 @@
           "lat",
           "lon",
           "open247",
+          "mine",
           "address",
           "city",
           "phones",
@@ -1247,7 +1277,57 @@
           "emergency",
           "fenced",
           "source",
-          "verifiedAt"
+          "verifiedAt",
+          "visibility",
+          "moderationStatus",
+          "canDelete"
+        ]
+      },
+      "CreatePlaceBodyInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "clinic",
+              "pharmacy",
+              "dog_park",
+              "shop",
+              "groomer",
+              "trainer",
+              "cafe",
+              "other"
+            ]
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lon": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "visibility": {
+            "default": "private",
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "category",
+          "lat",
+          "lon"
         ]
       },
       "PlacesInBoxInput": {
@@ -2397,6 +2477,9 @@
           },
           "open247": {
             "type": "boolean"
+          },
+          "mine": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -2405,7 +2488,8 @@
           "name",
           "lat",
           "lon",
-          "open247"
+          "open247",
+          "mine"
         ],
         "additionalProperties": false
       },
@@ -2445,6 +2529,9 @@
           "open247": {
             "type": "boolean"
           },
+          "mine": {
+            "type": "boolean"
+          },
           "address": {
             "type": [
               "string",
@@ -2471,6 +2558,7 @@
           "lat",
           "lon",
           "open247",
+          "mine",
           "address",
           "distanceM"
         ],
@@ -2510,6 +2598,9 @@
             "type": "number"
           },
           "open247": {
+            "type": "boolean"
+          },
+          "mine": {
             "type": "boolean"
           },
           "address": {
@@ -2567,6 +2658,24 @@
                 "type": "null"
               }
             ]
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "moderationStatus": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "pending",
+              "rejected"
+            ]
+          },
+          "canDelete": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -2576,6 +2685,7 @@
           "lat",
           "lon",
           "open247",
+          "mine",
           "address",
           "city",
           "phones",
@@ -2584,7 +2694,59 @@
           "emergency",
           "fenced",
           "source",
-          "verifiedAt"
+          "verifiedAt",
+          "visibility",
+          "moderationStatus",
+          "canDelete"
+        ],
+        "additionalProperties": false
+      },
+      "CreatePlaceBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "clinic",
+              "pharmacy",
+              "dog_park",
+              "shop",
+              "groomer",
+              "trainer",
+              "cafe",
+              "other"
+            ]
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lon": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "visibility": {
+            "default": "private",
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "category",
+          "lat",
+          "lon",
+          "visibility"
         ],
         "additionalProperties": false
       },
@@ -3746,6 +3908,70 @@
             }
           }
         }
+      },
+      "post": {
+        "operationId": "createPlace",
+        "summary": "Add own marker: private at once, public after moderation",
+        "tags": [
+          "places"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlaceBodyInput"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Place"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/places/nearby": {
@@ -3993,6 +4219,65 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePlace",
+        "summary": "Remove own marker",
+        "tags": [
+          "places"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "placeId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Default Response"
           },
           "400": {
             "description": "Default Response",

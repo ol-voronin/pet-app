@@ -1,4 +1,5 @@
 import type { GeocodeResult, PlaceListItem } from '@pet-app/shared';
+import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -59,6 +60,16 @@ export function PlacesScreen() {
   const center = address ?? location.point ?? DEFAULT_CENTER;
   const filters = useMemo<PlaceFilters>(() => ({ categories, open247 }), [categories, open247]);
   const nearby = useNearbyPlaces(center, radiusKm * 1000, filters);
+
+  // Own marker goes where the person looks from: the picked address, else their own position.
+  const addOwnPlace = () => {
+    router.push({
+      pathname: '/places/new',
+      params: address
+        ? { lat: String(address.lat), lon: String(address.lon), label: address.label }
+        : {},
+    });
+  };
 
   const searching = focused || query.trim().length > 0;
   const closeSearch = () => {
@@ -246,6 +257,9 @@ export function PlacesScreen() {
         ListEmptyComponent={empty}
         ListFooterComponent={
           <View style={{ gap: spacing.xs, marginTop: spacing.xl }}>
+            {searching ? null : (
+              <Button variant="secondary" title={t('places.new.open')} onPress={addOwnPlace} />
+            )}
             <Text variant="caption" color="textMuted">
               {t('places.listNote')}
             </Text>
