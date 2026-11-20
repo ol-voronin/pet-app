@@ -38,12 +38,110 @@
       "unknown": "Something went wrong. Try again"
     }
   },
+  "pets": {
+    "home": {
+      "upcoming": "Coming up",
+      "status": "Status",
+      "later": "Coming later",
+      "add": "Add a pet",
+      "loadError": "Could not load your pets. Check your connection and try again"
+    },
+    "empty": {
+      "title": "Add your pet",
+      "subtitle": "Scan the vet passport or fill in the details by hand.",
+      "scan": "Scan the passport",
+      "manual": "Fill in by hand",
+      "later": "Later",
+      "scanSoonTitle": "Scanning is coming soon",
+      "scanSoonBody": "For now, add your pet by hand — it takes half a minute."
+    },
+    "species": {
+      "dog": "Dog",
+      "cat": "Cat",
+      "other": "Other animal"
+    },
+    "sex": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "role": {
+      "owner": "Owner",
+      "editor": "Editor",
+      "viewer": "View only"
+    },
+    "age": {
+      "years_one": "{{count}} year",
+      "years_other": "{{count}} years",
+      "months_one": "{{count}} month",
+      "months_other": "{{count}} months",
+      "underMonth": "under a month"
+    },
+    "card": {
+      "species": "Species",
+      "breed": "Breed",
+      "age": "Age",
+      "sex": "Sex",
+      "birthDate": "Date of birth",
+      "chip": "Chip",
+      "role": "Your role",
+      "notSet": "—",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteBody": "The pet will disappear from the list for everyone who has access to it.",
+      "viewerNote": "You have view-only access.",
+      "notFound": "Pet not found",
+      "loadError": "Could not load. Check your connection and try again"
+    },
+    "form": {
+      "titleNew": "New pet",
+      "titleEdit": "Edit details",
+      "name": "Name",
+      "namePlaceholder": "e.g. Barsik",
+      "species": "Species",
+      "breed": "Breed",
+      "breedPlaceholder": "If you know it",
+      "sex": "Sex",
+      "birthDate": "Date of birth",
+      "birthDatePlaceholder": "DD.MM.YYYY",
+      "chip": "Chip number",
+      "chipHelper": "15 digits from the vet passport",
+      "save": "Save",
+      "errors": {
+        "name": "Enter a name",
+        "nameTooLong": "The name is too long: up to 60 characters",
+        "species": "Choose a species",
+        "breedTooLong": "The breed is too long: up to 80 characters",
+        "birthDate": "Enter the date as DD.MM.YYYY, e.g. 01.05.2020",
+        "birthDateFuture": "The date of birth cannot be in the future",
+        "chipTooLong": "The chip number is too long",
+        "forbidden": "You are not allowed to change this pet",
+        "network": "Cannot reach the server. Check your connection and try again",
+        "unknown": "Could not save. Try again"
+      }
+    },
+    "photo": {
+      "add": "Add a photo",
+      "change": "Change the photo",
+      "remove": "Remove the photo",
+      "errorTitle": "The photo was not uploaded",
+      "errors": {
+        "unavailable": "Photos cannot be uploaded yet. The pet was saved without a photo.",
+        "tooLarge": "The photo is too large: up to 20 MB. The pet was saved without a photo.",
+        "type": "This photo format is not supported. The pet was saved without a photo.",
+        "network": "Cannot reach the server. The pet was saved without a photo.",
+        "unknown": "Something went wrong. The pet was saved without a photo."
+      }
+    }
+  },
   "profile": {
     "phone": "Phone",
     "signOut": "Sign out"
   },
   "common": {
-    "close": "Close"
+    "close": "Close",
+    "cancel": "Cancel",
+    "retry": "Try again"
   },
   "uiKit": {
     "open": "Design system (dev)",

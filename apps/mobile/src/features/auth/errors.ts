@@ -1,21 +1,6 @@
-/** The API answered with an error status. `code` is the `error` field of the response body. */
-export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    /** Seconds from the `retry-after` header, when the API sent one. */
-    readonly retryAfterSeconds?: number,
-  ) {
-    super(code);
-  }
-}
+import { ApiError, NetworkError } from '@/shared/api/http';
 
-/** The request never got an answer: no network, DNS failure, timeout. */
-export class NetworkError extends Error {
-  constructor(cause?: unknown) {
-    super('network_error', { cause });
-  }
-}
+export { ApiError, NetworkError };
 
 export type AuthErrorKey =
   | 'auth.errors.invalidPhone'

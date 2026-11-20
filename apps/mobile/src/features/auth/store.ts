@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { queryClient } from '@/shared/api/queryClient';
 import { authApi } from './api';
 import { SessionManager, type SessionState } from './session';
 import { secureSessionStorage } from './storage';
@@ -10,6 +11,8 @@ export const session = new SessionManager({
   api: authApi,
   storage: secureSessionStorage,
   onChange: (state) => {
+    // Another person may sign in next on this phone: forget everything the API returned.
+    if (state.status === 'signedOut') queryClient.clear();
     useSession.setState(state, true);
   },
 });

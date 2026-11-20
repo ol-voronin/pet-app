@@ -11,7 +11,11 @@ function keys(obj: object, prefix = ''): string[] {
 
 describe('translations', () => {
   it('uk and en have the same keys', () => {
-    expect(keys(en).sort()).toEqual(keys(uk).sort());
+    // Plural forms differ by language (uk: one/few/many/other, en: one/other): compare the base key.
+    const base = (dict: object) => [
+      ...new Set(keys(dict).map((k) => k.replace(/_(zero|one|two|few|many|other)$/, ''))),
+    ];
+    expect(base(en).sort()).toEqual(base(uk).sort());
   });
 
   it('has no empty strings', () => {
