@@ -1,7 +1,7 @@
 import type { InviteRole, PetRole } from '@pet-app/shared';
 import type { MemoryAuthRepo } from '../auth/memory-repo.js';
 import type { MemoryPetsRepo } from '../pets/memory-repo.js';
-import type { FamilyRepo, InvitePet, InviteRecord } from './types.js';
+import type { FamilyRepo, InvitePet, InviteRecord, AcceptResult } from './types.js';
 
 interface StoredInvite extends InviteRecord {
   tokenHash: string;
@@ -93,13 +93,18 @@ export class MemoryFamilyRepo implements FamilyRepo {
     userId: string;
     role: InviteRole;
     petIds: string[];
+    memberLimit: number;
     now: Date;
-  }) {
+  }): Promise<AcceptResult> {
     const invite = this.invites.get(input.inviteId);
-    if (!invite || invite.acceptedBy || invite.revokedAt) return Promise.resolve(false);
+    if (!invite || invite.acceptedBy || invite.revokedAt) return Promise.resolve('used');
+    const full = input.petIds.some(
+      (petId) => (this.pets.members.get(petId)?.size ?? 0) >= input.memberLimit,
+    );
+    if (full) return Promise.resolve('full');
     invite.acceptedBy = input.userId;
     for (const petId of input.petIds) this.pets.addMember(petId, input.userId, input.role);
-    return Promise.resolve(true);
+    return Promise.resolve('accepted');
   }
 
   revokeInvite(inviteId: string, now: Date) {

@@ -13,6 +13,8 @@ export interface ColorTokens {
   textOnInverse: string;
   /** Brand fill — never as a text color. */
   primary: string;
+  /** Pale brand fill: icon plates, «open» badges. */
+  primarySoft: string;
   primaryEdge: string;
   /** Small accent text / links. */
   accent: string;
@@ -32,6 +34,7 @@ export const lightColors: ColorTokens = {
   textOnPrimary: palette.ink,
   textOnInverse: palette.white,
   primary: palette.brand,
+  primarySoft: palette.brandTint,
   primaryEdge: palette.forest,
   accent: palette.forest,
   inverse: palette.ink,
@@ -62,3 +65,27 @@ export const sizes = {
 } as const;
 
 export type TextVariant = keyof typeof typography;
+
+/** Colors the map draws with (base map and pins). The map is a web page, so they go in as plain values. */
+export const mapColors = {
+  land: palette.mapLand,
+  park: palette.mapPark,
+  water: palette.mapWater,
+  building: palette.mapBuilding,
+  road: palette.white,
+  pin: palette.ink,
+  pinGlyph: palette.brand,
+  pinRing: palette.cream,
+  mine: palette.brand,
+  mineGlyph: palette.ink,
+  label: palette.cream,
+} as const;
+
+/** The only shadow in the app: for what floats over the map (HANDOFF §5). */
+export const floatingShadow = {
+  shadowColor: palette.ink,
+  shadowOpacity: 0.14,
+  shadowRadius: 8,
+  shadowOffset: { width: 0, height: 2 },
+  elevation: 4,
+} as const;

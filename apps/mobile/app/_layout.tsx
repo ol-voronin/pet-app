@@ -45,7 +45,8 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="welcome" />
           <Stack.Screen name="pets/new" options={petScreen} />
-          <Stack.Screen name="places/new" options={petScreen} />
+          {/* Full-screen map with its own close button (design canvas «6а»). */}
+          <Stack.Screen name="places/new" options={{ headerShown: false }} />
           <Stack.Screen name="pets/[petId]/index" options={petScreen} />
           <Stack.Screen name="pets/[petId]/edit" options={petScreen} />
           <Stack.Screen name="invite/new" options={petScreen} />

@@ -15,16 +15,6 @@ export type FilterCategory = (typeof FILTER_CATEGORIES)[number];
 /** Kharkiv centre: where the list looks until the person shares their location. */
 export const DEFAULT_CENTER = { lat: 49.9935, lon: 36.2304 } as const;
 
-export const RADIUS_OPTIONS_KM = [2, 5, 10, 25] as const;
-export type RadiusKm = (typeof RADIUS_OPTIONS_KM)[number];
-export const DEFAULT_RADIUS_KM: RadiusKm = 5;
-
-/** The next wider radius, or `null` when it is already the widest. */
-export function widerRadius(current: RadiusKm): RadiusKm | null {
-  const next = RADIUS_OPTIONS_KM[RADIUS_OPTIONS_KM.indexOf(current) + 1];
-  return next ?? null;
-}
-
 export type Distance = { unit: 'm'; value: string } | { unit: 'km'; value: string };
 
 /** 320 → "320 m"; 1 640 → "1,6 km"; 12 300 → "12 km". The caller adds the translated unit. */

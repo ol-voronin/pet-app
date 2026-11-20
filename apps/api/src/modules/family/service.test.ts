@@ -176,6 +176,24 @@ describe('FamilyService', () => {
       expect(petsRepo.members.get(buddy)?.size).toBe(2);
     });
 
+    it('lets only one of two people take the last place when they accept at the same moment (QA #50)', async () => {
+      const first = await family.createInvite(marina, { petIds: [buddy], role: 'viewer' });
+      const second = await family.createInvite(marina, { petIds: [buddy], role: 'viewer' });
+
+      // Both quick checks run before either insert; the repository's own check decides.
+      const results = await Promise.allSettled([
+        family.accept(andriy, first.token),
+        family.accept(stranger, second.token),
+      ]);
+
+      expect(results.map((r) => r.status).sort()).toEqual(['fulfilled', 'rejected']);
+      const rejected = results.find((r) => r.status === 'rejected');
+      expect(rejected?.reason).toMatchObject({ code: 'member_limit' });
+      expect(petsRepo.members.get(buddy)?.size).toBe(2);
+      // The losing link stays usable for a pet with room later; it was not claimed.
+      expect([...familyRepo.invites.values()].filter((i) => i.acceptedBy !== null)).toHaveLength(1);
+    });
+
     it('joins all pets or none: one pet without room rejects the whole invite', async () => {
       const { token } = await family.createInvite(marina, {
         petIds: [buddy, mango],

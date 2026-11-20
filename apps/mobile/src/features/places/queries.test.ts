@@ -6,6 +6,7 @@ import {
   createPlaceMutation,
   deletePlaceMutation,
   geocodeQuery,
+  inBoxPlacesQuery,
   nearbyPlacesQuery,
   placeKeys,
   searchPlacesQuery,
@@ -20,7 +21,9 @@ function fakeApi() {
   const geocode = vi.fn<PlacesApi['geocode']>(() => Promise.resolve([]));
   const create = vi.fn<PlacesApi['create']>();
   const remove = vi.fn<PlacesApi['remove']>(() => Promise.resolve());
+  const inBox = vi.fn<PlacesApi['inBox']>(() => Promise.resolve({ places: [], truncated: false }));
   const api: PlacesApi = {
+    inBox,
     nearby,
     search,
     geocode,
@@ -28,7 +31,7 @@ function fakeApi() {
     create,
     remove,
   };
-  return { api, nearby, search, geocode, create, remove };
+  return { api, inBox, nearby, search, geocode, create, remove };
 }
 
 describe('place queries', () => {
@@ -45,6 +48,15 @@ describe('place queries', () => {
     const b = placeKeys.nearby(center, 5000, { categories: ['pharmacy', 'clinic'], open247: true });
     expect(a).toEqual(b);
     expect(a).not.toEqual(placeKeys.nearby(center, 5000, none));
+  });
+
+  it('reuses the pins while the visible area moves less than about 100 m', async () => {
+    const box = { west: 36.21011, south: 49.98012, east: 36.25009, north: 50.01008 };
+    const moved = { west: 36.21032, south: 49.98031, east: 36.2503, north: 50.01027 };
+    expect(placeKeys.inBox(box, none)).toEqual(placeKeys.inBox(moved, none));
+    const { api, inBox } = fakeApi();
+    await inBoxPlacesQuery(api, box, none).queryFn();
+    expect(inBox).toHaveBeenCalledWith(box, none);
   });
 
   it('passes the centre, radius and filters to the server', async () => {

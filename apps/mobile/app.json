@@ -35,7 +35,8 @@
       "sentryDsn": "",
       "eas": {
         "projectId": "805be4a7-fafa-4188-b3f3-65b8effdd423"
-      }
+      },
+      "mapStyleUrl": ""
     }
   }
 }

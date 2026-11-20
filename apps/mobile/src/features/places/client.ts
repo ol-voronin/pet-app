@@ -10,6 +10,17 @@ const filterParams = (filters: PlaceFilters) => ({
 
 /** PlacesApi over the real HTTP client. */
 export const placesApi: PlacesApi = {
+  inBox: (box, filters) =>
+    unwrap(
+      api.GET('/places', {
+        params: {
+          query: {
+            bbox: [box.west, box.south, box.east, box.north].join(','),
+            ...filterParams(filters),
+          },
+        },
+      }),
+    ),
   nearby: async (center, radiusM, filters) =>
     (
       await unwrap(

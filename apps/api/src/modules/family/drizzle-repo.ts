@@ -1,7 +1,10 @@
 import { petInvitePets, petInvites, petMembers, pets, users, type Db } from '@pet-app/db';
 import type { InviteRole, PetRole } from '@pet-app/shared';
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
-import type { FamilyRepo, InviteRecord } from './types.js';
+import type { AcceptResult, FamilyRepo, InviteRecord } from './types.js';
+
+/** First key of the advisory lock: «family membership of a pet». The second key is the pet. */
+const FAMILY_LOCK = 4201;
 
 /** Members of the pet in the outer query, the owner included. */
 const memberCount = sql<number>`(select count(*)::int from pet_members pm where pm.pet_id = ${pets.id})`;
@@ -102,28 +105,47 @@ export class DrizzleFamilyRepo implements FamilyRepo {
     role: InviteRole;
     petIds: string[];
     invitedBy: string;
+    memberLimit: number;
     now: Date;
-  }) {
+  }): Promise<AcceptResult> {
     const now = input.now.toISOString();
-    // One statement, so it is atomic without an interactive transaction: the memberships are
-    // inserted only if this very statement claimed the invite.
-    const result = await this.db.execute(sql`
-      with claimed as (
+    // Sorted, so two invites covering the same pets always lock them in the same order (no deadlock).
+    const petIds = [...input.petIds].sort();
+    const inPets = petIds.length > 0 ? inArray(sql`p.id`, petIds) : sql`false`;
+    // One transaction (neon-http runs a batch as one), two statements:
+    // 1. a lock per pet, held until commit — a second acceptance for the same pet waits here;
+    // 2. claim + insert, but only while every pet has room. Under READ COMMITTED this statement
+    //    starts after the lock is granted, so it sees the members the first one committed.
+    const lock = this.db.execute(sql`
+      select pg_advisory_xact_lock(${FAMILY_LOCK}, hashtext(p.id::text))
+        from pets p where ${inPets} order by p.id
+    `);
+    const accept = this.db.execute(sql`
+      with room as (
+        select count(*) filter (
+                 where (select count(*) from pet_members m where m.pet_id = p.id) >= ${input.memberLimit}
+               )::int as full_pets
+          from pets p where ${inPets}
+      ), claimed as (
         update pet_invites
            set accepted_by = ${input.userId}::uuid, accepted_at = ${now}::timestamptz
          where id = ${input.inviteId}::uuid and accepted_by is null and revoked_at is null
+           and (select full_pets from room) = 0
         returning id
       ), added as (
         insert into pet_members (pet_id, user_id, role, invited_by, created_at)
         select p.id, ${input.userId}::uuid, ${input.role}::pet_role, ${input.invitedBy}::uuid,
                ${now}::timestamptz
           from pets p, claimed
-         where ${input.petIds.length > 0 ? inArray(sql`p.id`, input.petIds) : sql`false`}
+         where ${inPets}
         on conflict do nothing
       )
-      select id from claimed
+      select (select count(*)::int from claimed) as claimed, (select full_pets from room) as full_pets
     `);
-    return result.rows.length === 1;
+    const [, result] = await this.db.batch([lock, accept]);
+    const row = result.rows[0] as { claimed: number; full_pets: number } | undefined;
+    if (row?.claimed === 1) return 'accepted';
+    return (row?.full_pets ?? 0) > 0 ? 'full' : 'used';
   }
 
   async revokeInvite(inviteId: string, now: Date) {
