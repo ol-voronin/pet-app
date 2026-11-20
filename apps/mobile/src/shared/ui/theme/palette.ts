@@ -3,6 +3,7 @@
 export const palette = {
   brand: '#B5F04F', // fill only, under dark text. White text on it is forbidden (contrast 1.4).
   ink: '#14260F', // main text and dark buttons
+  inkEdge: '#0A1507', // edge under dark pills
   forest: '#3F7A12', // small text accents, primary button edge
   cream: '#FAF7F0', // app background
   white: '#FFFFFF', // cards (no shadow)
@@ -15,6 +16,10 @@ export const palette = {
   mapPark: '#DDEBC8',
   mapWater: '#CFE0E3',
   mapBuilding: '#E3E5DA',
+  // Overdue items (design «UI 3 · Дім»): row fill, text, dot.
+  amberTint: '#FFE9C7',
+  amberDark: '#7A3E00',
+  amber: '#E06A00',
   // Second color — warnings only.
   alert: '#B3261E',
 } as const;

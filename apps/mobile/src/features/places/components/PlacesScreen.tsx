@@ -10,11 +10,21 @@ import {
   StyleSheet,
   TextInput,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NetworkError } from '@/shared/api/http';
-import { Button, Card, Chip, floatingShadow, Icon, Text, useTheme } from '@/shared/ui';
+import {
+  Button,
+  Card,
+  Chip,
+  DraggableSheet,
+  floatingShadow,
+  Icon,
+  PressableScale,
+  Text,
+  useTheme,
+  type SheetSnap,
+} from '@/shared/ui';
 import type { PlaceFilters, Point } from '../api';
 import { useDebounced, useInBoxPlaces, useNearbyPlaces } from '../hooks';
 import { categoryIcon, categoryPluralKey } from '../labels';
@@ -48,9 +58,8 @@ function distanceFrom(from: Point | null, to: Point): number | null {
  */
 export function PlacesScreen() {
   const { t } = useTranslation();
-  const { colors, spacing, radius } = useTheme();
+  const { colors, spacing, radius, gutter } = useTheme();
   const insets = useSafeAreaInsets();
-  const { height: windowHeight } = useWindowDimensions();
   const map = useRef<MapViewHandle>(null);
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const distanceLabel = useDistanceLabel();
@@ -77,7 +86,7 @@ export function PlacesScreen() {
   const [searching, setSearching] = useState(false);
   const settledQuery = useDebounced(query, 400);
   const [placeId, setPlaceId] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [snap, setSnap] = useState<SheetSnap>('half');
 
   const box = settledRegion
     ? {
@@ -143,13 +152,15 @@ export function PlacesScreen() {
         break;
       case 'select':
         setPlaceId(event.id);
+        setSnap((s) => (s === 'collapsed' ? 'half' : s));
         break;
       case 'tapEmpty':
         setPlaceId(null);
         Keyboard.dismiss();
         break;
       case 'drag':
-        setExpanded(false);
+        // Moving the map means looking at the map: a fully open panel steps back to the middle.
+        setSnap((s) => (s === 'full' ? 'half' : s));
         break;
       case 'longPress':
         router.push({
@@ -165,6 +176,7 @@ export function PlacesScreen() {
 
   // Panels cover the map; tell it, so «the middle» is the middle of what is visible.
   const [topHeight, setTopHeight] = useState(0);
+  const [screenHeight, setScreenHeight] = useState(0);
   const [panelHeight, setPanelHeight] = useState(0);
   useEffect(() => {
     if (topHeight && panelHeight) {
@@ -200,10 +212,19 @@ export function PlacesScreen() {
     router.push({ pathname: '/places/new', params: { lat: String(at.lat), lon: String(at.lon) } });
   };
 
-  const panelMax = Math.round(windowHeight * (expanded ? 0.62 : 0.34));
+  const openPlace = (id: string, at: Point) => {
+    setPlaceId(id);
+    setSnap('half');
+    flyTo(at, 16);
+  };
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+    <View
+      style={[styles.screen, { backgroundColor: colors.background }]}
+      onLayout={(e) => {
+        setScreenHeight(Math.round(e.nativeEvent.layout.height));
+      }}
+    >
       <MapView
         key={mapKey}
         ref={map}
@@ -236,7 +257,7 @@ export function PlacesScreen() {
           setTopHeight(Math.round(e.nativeEvent.layout.height));
         }}
       >
-        <Pressable
+        <PressableScale
           onPress={() => {
             setSearching(true);
           }}
@@ -246,7 +267,7 @@ export function PlacesScreen() {
             styles.searchPill,
             floatingShadow,
             {
-              marginHorizontal: spacing.xl,
+              marginHorizontal: gutter,
               backgroundColor: colors.surface,
               borderRadius: radius.pill,
               paddingHorizontal: spacing.lg,
@@ -258,7 +279,7 @@ export function PlacesScreen() {
           <Text color="textMuted" numberOfLines={1} style={styles.flex}>
             {t('places.searchPlaceholder')}
           </Text>
-        </Pressable>
+        </PressableScale>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -266,7 +287,7 @@ export function PlacesScreen() {
           accessibilityLabel={t('places.filter.categories')}
           contentContainerStyle={{
             gap: spacing.sm,
-            paddingHorizontal: spacing.xl,
+            paddingHorizontal: gutter,
             paddingBottom: spacing.sm,
           }}
         >
@@ -294,71 +315,58 @@ export function PlacesScreen() {
         </ScrollView>
       </View>
 
-      {/* My location, just above the panel. */}
-      <Pressable
-        onPress={() => {
-          void locateMe();
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={t('places.near.locate')}
-        style={[
-          styles.locate,
-          floatingShadow,
-          { bottom: panelHeight + spacing.md, right: spacing.lg, backgroundColor: colors.surface },
-        ]}
-      >
-        {user.status === 'asking' ? (
-          <ActivityIndicator color={colors.accent} />
-        ) : (
-          <Icon name="locate" size={22} />
-        )}
-      </Pressable>
-
-      {/* Bottom panel: a place card or the list of what is around. */}
-      <View
-        style={[
-          styles.panel,
-          floatingShadow,
-          {
-            maxHeight: panelMax,
-            backgroundColor: colors.background,
-            borderTopLeftRadius: radius.sheet,
-            borderTopRightRadius: radius.sheet,
-          },
-        ]}
-        onLayout={(e) => {
-          setPanelHeight(Math.round(e.nativeEvent.layout.height));
-        }}
-      >
-        <Pressable
-          onPress={() => {
-            setExpanded((value) => !value);
+      {/* Bottom panel: a place card or the list of what is around. It follows the finger (owner, 20.11). */}
+      {screenHeight > 0 ? (
+        <DraggableSheet
+          maxHeight={screenHeight - topHeight - spacing.sm}
+          snap={snap}
+          onSnapChange={setSnap}
+          onVisibleHeight={setPanelHeight}
+          accessibilityLabels={{
+            expand: t('places.sheet.expand'),
+            collapse: t('places.sheet.collapse'),
           }}
-          accessibilityRole="button"
-          accessibilityLabel={expanded ? t('places.sheet.collapse') : t('places.sheet.expand')}
-          style={{ paddingTop: spacing.sm, paddingBottom: spacing.xs, alignItems: 'center' }}
-        >
-          <View style={[styles.handle, { backgroundColor: colors.border }]} />
-        </Pressable>
-        <ScrollView
-          contentContainerStyle={{
-            paddingHorizontal: spacing.xl,
-            paddingBottom: spacing.lg,
-            gap: spacing.md,
-          }}
-          keyboardShouldPersistTaps="handled"
-        >
-          {placeId ? (
-            <PlaceCard
-              placeId={placeId}
-              distance={selectedDistance}
-              onClose={() => {
-                setPlaceId(null);
-              }}
-            />
-          ) : (
-            <>
-              <View style={[styles.listHead, { gap: spacing.sm }]}>
+          above={
+            snap === 'full' ? null : (
+              <View
+                style={[styles.aboveSheet, { paddingRight: spacing.lg, paddingBottom: spacing.md }]}
+              >
+                <PressableScale
+                  onPress={() => {
+                    void locateMe();
+                  }}
+                  haptic="select"
+                  accessibilityRole="button"
+                  accessibilityLabel={t('places.near.locate')}
+                  style={[styles.locate, floatingShadow, { backgroundColor: colors.surface }]}
+                >
+                  {user.status === 'asking' ? (
+                    <ActivityIndicator color={colors.accent} />
+                  ) : (
+                    <Icon name="locate" size={22} />
+                  )}
+                </PressableScale>
+              </View>
+            )
+          }
+          header={
+            placeId ? (
+              <View style={{ paddingHorizontal: gutter, paddingBottom: spacing.lg }}>
+                <PlaceCard
+                  placeId={placeId}
+                  distance={selectedDistance}
+                  onClose={() => {
+                    setPlaceId(null);
+                  }}
+                />
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.listHead,
+                  { gap: spacing.sm, paddingHorizontal: gutter, paddingBottom: spacing.md },
+                ]}
+              >
                 <Text variant="heading" accessibilityRole="header" style={styles.flex}>
                   {nearby.isPending
                     ? t('places.sheet.loading')
@@ -370,49 +378,65 @@ export function PlacesScreen() {
                   </Text>
                 ) : null}
               </View>
-              {nearby.isError ? (
-                <View style={{ gap: spacing.sm }}>
-                  <Text color="textMuted">
-                    {nearby.error instanceof NetworkError
-                      ? t('places.list.offline')
-                      : t('places.list.error')}
-                  </Text>
-                  <Button
-                    variant="secondary"
-                    title={t('common.retry')}
-                    onPress={() => {
-                      void nearby.refetch();
-                    }}
-                  />
-                </View>
-              ) : list.length > 0 ? (
-                <Card style={styles.listCard}>
-                  {list.map((place: PlaceListItem, index) => (
-                    <PlaceRow
-                      key={place.id}
-                      place={place}
-                      last={index === list.length - 1}
-                      onPress={() => {
-                        setPlaceId(place.id);
-                        flyTo(place, 16);
-                      }}
-                    />
-                  ))}
-                </Card>
-              ) : nearby.isPending ? null : (
-                <Text color="textMuted">{t('places.sheet.empty')}</Text>
-              )}
-              <Button variant="ghost" title={t('places.new.open')} onPress={addOwnPlace} />
-              <Text variant="caption" color="textMuted">
-                {t('places.sheet.longPressHint')}
+            )
+          }
+          contentContainerStyle={{ paddingBottom: spacing.lg }}
+        >
+          {placeId ? null : nearby.isError ? (
+            <View style={{ gap: spacing.sm, paddingHorizontal: gutter }}>
+              <Text color="textMuted">
+                {nearby.error instanceof NetworkError
+                  ? t('places.list.offline')
+                  : t('places.list.error')}
               </Text>
-            </>
+              <Button
+                variant="secondary"
+                title={t('common.retry')}
+                onPress={() => {
+                  void nearby.refetch();
+                }}
+              />
+            </View>
+          ) : list.length > 0 ? (
+            <View
+              style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }}
+            >
+              {list.map((place: PlaceListItem, index) => (
+                <PlaceRow
+                  key={place.id}
+                  place={place}
+                  last={index === list.length - 1}
+                  onPress={() => {
+                    openPlace(place.id, place);
+                  }}
+                />
+              ))}
+            </View>
+          ) : nearby.isPending ? null : (
+            <Text color="textMuted" style={{ paddingHorizontal: gutter }}>
+              {t('places.sheet.empty')}
+            </Text>
           )}
-          <Text variant="caption" color="textMuted">
-            {t('places.attribution')}
-          </Text>
-        </ScrollView>
-      </View>
+          <View style={{ paddingHorizontal: gutter, paddingTop: spacing.md, gap: spacing.sm }}>
+            {placeId ? null : (
+              <>
+                <Button
+                  variant="outline"
+                  size="small"
+                  title={t('places.new.open')}
+                  onPress={addOwnPlace}
+                />
+                <Text variant="caption" color="textMuted">
+                  {t('places.sheet.longPressHint')}
+                </Text>
+              </>
+            )}
+            <Text variant="caption" color="textMuted">
+              {t('places.attribution')}
+            </Text>
+          </View>
+        </DraggableSheet>
+      ) : null}
 
       {/* Search: covers the map while the person types (design canvas «8. Пошук»). */}
       {searching ? (
@@ -487,8 +511,7 @@ export function PlacesScreen() {
               onPlace={(place) => {
                 recent.add(place.name ?? query);
                 closeSearch();
-                setPlaceId(place.id);
-                flyTo(place, 16);
+                openPlace(place.id, place);
               }}
               onAddress={(found: GeocodeResult) => {
                 recent.add(query);
@@ -519,17 +542,14 @@ const styles = StyleSheet.create({
   },
   // minWidth 0: a text field otherwise refuses to shrink and pushes «Скасувати» off the row.
   searchInput: { fontSize: 16, paddingVertical: 12, minWidth: 0 },
+  aboveSheet: { alignItems: 'flex-end' },
   locate: {
-    position: 'absolute',
     width: 48,
     height: 48,
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  panel: { position: 'absolute', left: 0, right: 0, bottom: 0 },
-  handle: { width: 40, height: 4, borderRadius: 2 },
   listHead: { flexDirection: 'row', alignItems: 'baseline' },
-  listCard: { padding: 0, overflow: 'hidden' },
   mapMessage: { position: 'absolute', left: 0, right: 0 },
 });

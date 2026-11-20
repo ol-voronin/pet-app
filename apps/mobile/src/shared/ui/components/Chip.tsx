@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { PressableScale } from '../motion/PressableScale';
 import { floatingShadow } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { Icon, type IconName } from './Icon';
@@ -17,8 +18,9 @@ export interface ChipProps {
 export function Chip({ label, selected, onPress, icon, floating = false }: ChipProps) {
   const { colors, radius, spacing, sizes } = useTheme();
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
+      haptic="select"
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={label}
@@ -41,7 +43,7 @@ export function Chip({ label, selected, onPress, icon, floating = false }: ChipP
       <Text variant="label" color={selected ? 'textOnInverse' : 'text'}>
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 

@@ -133,3 +133,9 @@ Node, запуск собранного entry, пакеты воркспейса
 - **Запросы к Postgres.** Автотесты идут на хранилище в памяти и SQL не проверяют: `ORDER BY null` в поиске нашёл
   только живой прогон на Neon `dev` (PR #53). Новый запрос в `drizzle-repo.ts` — живая проверка до PR.
 
+- **Анимации и ESLint.** Правило `no-unsafe-class-instance-assignment` (typescript-eslint 8.73) падает с переполнением
+  стека на типах `Animated` из React Native. Весь код с `Animated` держим в `apps/mobile/src/shared/ui/motion`, правило
+  выключено только там (`eslint.config.js`).
+- **Сервер общий с другим проектом.** Порты 80/443 и адрес `<IP>.sslip.io` на Hetzner уже заняты (`legal-search`).
+  Скрипт `deploy/setup-server.sh` подключается к тому Caddy отдельным блоком и берёт `pet.<IP>.sslip.io`. Пустая
+  переменная в `.env` (`SENTRY_DSN=`) роняла API на старте: `loadConfig` теперь считает пустое незаданным.
