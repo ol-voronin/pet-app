@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { AddPetEmpty } from '@/features/pets/components/AddPetEmpty';
@@ -40,7 +41,11 @@ export default function PetsScreen() {
           />
         </View>
       ) : pets.data.length === 0 ? (
-        <AddPetEmpty />
+        <AddPetEmpty
+          onLater={() => {
+            router.navigate('/');
+          }}
+        />
       ) : (
         <PetsHome pets={pets.data} />
       )}

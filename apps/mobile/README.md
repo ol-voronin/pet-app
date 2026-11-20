@@ -26,6 +26,8 @@ pnpm -F mobile start     # Metro for the installed development build
 - `src/features/pets` — pets home, card and form. Logic lives in plain modules with tests (`form.ts`, `age.ts`,
   `photo.ts`, `queries.ts`); `hooks.ts` and `components/` are thin wrappers. Routes: `app/pets/new`,
   `app/pets/[petId]`, `app/pets/[petId]/edit`.
+- `src/features/onboarding` — decides whether a signed-in user sees «Додайте улюбленця» (`app/welcome.tsx`) or the
+  tabs: shown once, to a user with no pets; the "finished" flag is stored on the device per user.
 - `src/shared/api` — HTTP errors (`ApiError`, `NetworkError`) and the TanStack Query cache (cleared on sign-out).
   Signed-in requests go through `src/features/auth/client.ts`, which adds the access token.
 - `src/shared/i18n` — i18next; `uk` default, `en` second; device language via expo-localization,

@@ -1,10 +1,23 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useAddPetGate } from '@/features/onboarding/hooks';
 import { useTheme } from '@/shared/ui';
 
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const { gate } = useAddPetGate();
+
+  // First sign-in with no pets opens «Додайте улюбленця» instead of the map (PRD, onboarding).
+  if (gate === 'show') return <Redirect href="/welcome" />;
+  if (gate === 'wait') {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.accent} />
+      </View>
+    );
+  }
   return (
     <Tabs
       screenOptions={{
@@ -23,3 +36,7 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+});

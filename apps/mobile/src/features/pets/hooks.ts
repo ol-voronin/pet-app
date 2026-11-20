@@ -12,7 +12,8 @@ import {
 
 // Thin wrappers: what each hook fetches and how it updates the cache is defined (and tested) in queries.ts.
 
-export const usePets = () => useQuery(petsListQuery(petsApi));
+export const usePets = (options?: { enabled?: boolean }) =>
+  useQuery({ ...petsListQuery(petsApi), enabled: options?.enabled ?? true });
 
 export const usePet = (petId: string) => useQuery(petQuery(petsApi, petId));
 
