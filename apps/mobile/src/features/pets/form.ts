@@ -73,6 +73,11 @@ const orNull = (value: string) => (value.trim() === '' ? null : value.trim());
  */
 export function validatePetForm(
   values: PetFormValues,
+  /**
+   * Editing: the birth date already saved. Left as it is, it is not checked again and not sent —
+   * a date that was valid when saved (or a pet that just turned 40) must not block other edits (QA #65).
+   */
+  options: { storedBirthDate?: string | null } = {},
 ): { ok: true; body: CreatePetBody } | { ok: false; errors: PetFormErrors } {
   const errors: PetFormErrors = {};
 
@@ -83,12 +88,13 @@ export function validatePetForm(
   }
   if (!values.species) errors.species = 'pets.form.errors.species';
 
+  const keepStored = birthDate !== null && birthDate === options.storedBirthDate;
   const parsed = createPetBodySchema.safeParse({
     name: values.name,
     species: values.species ?? 'dog',
     breed: orNull(values.breed),
     sex: values.sex,
-    birthDate,
+    birthDate: keepStored ? undefined : birthDate,
     // Chips are printed in groups of digits; spaces are not part of the number.
     chipNumber: orNull(values.chipNumber.replace(/\s+/g, '')),
   });

@@ -1,5 +1,10 @@
-import { authTokensSchema, otpRequestResponseSchema, petSchema } from '@pet-app/shared';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import {
+  authTokensSchema,
+  otpRequestResponseSchema,
+  petListSchema,
+  petSchema,
+} from '@pet-app/shared';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp, type App } from '../../build-app.js';
 import { MemoryAuthRepo } from '../auth/memory-repo.js';
 import { LogOtpSender } from '../auth/otp-sender.js';
@@ -154,5 +159,88 @@ describe('pets routes', () => {
       payload: { contentType: 'application/pdf', sizeBytes: 1000 },
     });
     expect(res.statusCode).toBe(400);
+  });
+});
+
+describe('pets routes: a saved birth date that the input rule no longer allows (QA #65)', () => {
+  const sender = new LogOtpSender();
+  let app: App;
+
+  beforeAll(async () => {
+    const auth = new AuthService({
+      repo: new MemoryAuthRepo(),
+      sender,
+      secret: 'route-test-secret-route-test-secret!!',
+    });
+    app = await buildApp({
+      version: 'test',
+      auth,
+      pets: new PetsService({ repo: new MemoryPetsRepo(), storage: new MemoryFileStorage() }),
+    });
+  });
+  afterAll(async () => {
+    await app.close();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function login() {
+    const req = await app.inject({
+      method: 'POST',
+      url: '/auth/otp/request',
+      payload: { phone: '+380671112299' },
+    });
+    const { challengeId } = otpRequestResponseSchema.parse(req.json());
+    const verify = await app.inject({
+      method: 'POST',
+      url: '/auth/otp/verify',
+      payload: { challengeId, code: sender.sent.at(-1)?.code },
+    });
+    return { authorization: `Bearer ${authTokensSchema.parse(verify.json()).accessToken}` };
+  }
+
+  it('still reads and edits a pet that turned 40 years and a day', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-20T10:00:00Z'));
+    let headers = await login();
+    const created = await app.inject({
+      method: 'POST',
+      url: '/pets',
+      headers,
+      payload: { name: 'Бадді', species: 'dog', birthDate: '1986-11-20' },
+    });
+    expect(created.statusCode).toBe(201);
+    const { id } = petSchema.parse(created.json());
+
+    // The next day the date is outside the input rule.
+    vi.setSystemTime(new Date('2026-11-21T10:00:00Z'));
+    headers = await login();
+
+    const list = await app.inject({ method: 'GET', url: '/pets', headers });
+    expect(list.statusCode).toBe(200);
+    expect(petListSchema.parse(list.json()).pets[0]?.birthDate).toBe('1986-11-20');
+    expect((await app.inject({ method: 'GET', url: `/pets/${id}`, headers })).statusCode).toBe(200);
+
+    const patched = await app.inject({
+      method: 'PATCH',
+      url: `/pets/${id}`,
+      headers,
+      payload: { breed: 'Лабрадор' },
+    });
+    expect(patched.statusCode).toBe(200);
+    expect(petSchema.parse(patched.json())).toMatchObject({
+      breed: 'Лабрадор',
+      birthDate: '1986-11-20',
+    });
+
+    // Entering such a date is still refused.
+    const resent = await app.inject({
+      method: 'PATCH',
+      url: `/pets/${id}`,
+      headers,
+      payload: { birthDate: '1986-11-20' },
+    });
+    expect(resent.statusCode).toBe(400);
   });
 });
