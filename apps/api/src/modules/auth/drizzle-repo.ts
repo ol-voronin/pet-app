@@ -1,5 +1,14 @@
-import { authIdentities, otpChallenges, sessions, users, type Db } from '@pet-app/db';
-import { and, desc, eq, gte, isNull, sql } from 'drizzle-orm';
+import {
+  authIdentities,
+  otpChallenges,
+  petInvites,
+  petMembers,
+  pets,
+  sessions,
+  users,
+  type Db,
+} from '@pet-app/db';
+import { and, asc, desc, eq, gte, isNull, ne, sql } from 'drizzle-orm';
 import type { AuthRepo, ChallengeRecord, SessionRecord, UserRecord } from './types.js';
 
 const toUser = (u: typeof users.$inferSelect): UserRecord => ({
@@ -135,5 +144,71 @@ export class DrizzleAuthRepo implements AuthRepo {
       .update(sessions)
       .set({ revokedAt: now })
       .where(and(eq(sessions.familyId, familyId), isNull(sessions.revokedAt)));
+  }
+
+  async deleteAccount(userId: string, now: Date) {
+    const ownedPets = await this.db
+      .select({ petId: petMembers.petId })
+      .from(petMembers)
+      .innerJoin(pets, eq(pets.id, petMembers.petId))
+      .where(
+        and(eq(petMembers.userId, userId), eq(petMembers.role, 'owner'), isNull(pets.deletedAt)),
+      );
+
+    const promotions: { petId: string; userId: string }[] = [];
+    const softDeletePetIds: string[] = [];
+
+    for (const { petId } of ownedPets) {
+      const others = await this.db
+        .select({ userId: petMembers.userId, role: petMembers.role })
+        .from(petMembers)
+        .innerJoin(users, eq(users.id, petMembers.userId))
+        .where(
+          and(eq(petMembers.petId, petId), ne(petMembers.userId, userId), isNull(users.deletedAt)),
+        )
+        .orderBy(asc(petMembers.createdAt), asc(petMembers.userId));
+
+      if (others.some((m) => m.role === 'owner')) continue;
+      const nextOwner = others.find((m) => m.role === 'editor');
+      if (nextOwner) {
+        promotions.push({ petId, userId: nextOwner.userId });
+      } else {
+        softDeletePetIds.push(petId);
+      }
+    }
+
+    const promoteOps = promotions.map((p) =>
+      this.db
+        .update(petMembers)
+        .set({ role: 'owner' })
+        .where(and(eq(petMembers.petId, p.petId), eq(petMembers.userId, p.userId))),
+    );
+
+    const softDeleteOps = softDeletePetIds.map((petId) =>
+      this.db
+        .update(pets)
+        .set({ deletedAt: now, updatedAt: now })
+        .where(and(eq(pets.id, petId), isNull(pets.deletedAt))),
+    );
+
+    // Run all mutations in a single neon-http batch transaction (non-empty tuple for Drizzle types).
+    await this.db.batch([
+      this.db.delete(petMembers).where(eq(petMembers.userId, userId)),
+      ...promoteOps,
+      ...softDeleteOps,
+      this.db
+        .update(petInvites)
+        .set({ revokedAt: now })
+        .where(and(eq(petInvites.createdBy, userId), isNull(petInvites.revokedAt))),
+      this.db
+        .update(sessions)
+        .set({ revokedAt: now })
+        .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt))),
+      this.db.delete(authIdentities).where(eq(authIdentities.userId, userId)),
+      this.db
+        .update(users)
+        .set({ deletedAt: now, phone: null, name: null, avatarUrl: null })
+        .where(and(eq(users.id, userId), isNull(users.deletedAt))),
+    ]);
   }
 }

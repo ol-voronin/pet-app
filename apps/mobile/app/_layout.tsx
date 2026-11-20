@@ -51,6 +51,7 @@ export default function RootLayout() {
           <Stack.Screen name="pets/[petId]/edit" options={petScreen} />
           <Stack.Screen name="invite/new" options={petScreen} />
           <Stack.Screen name="invite/enter" options={petScreen} />
+          <Stack.Screen name="profile/delete-account" options={petScreen} />
           <Stack.Screen name="ui-kit" />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>

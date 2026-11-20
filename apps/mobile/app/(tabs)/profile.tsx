@@ -32,13 +32,20 @@ export default function ProfileScreen() {
         }}
       />
       <Button
-        variant="danger"
+        variant="secondary"
         title={t('profile.signOut')}
         loading={signingOut}
         onPress={() => {
           setSigningOut(true);
           // The root layout shows the sign-in screen as soon as the session is dropped.
           void session.signOut();
+        }}
+      />
+      <Button
+        variant="danger"
+        title={t('profile.deleteAccount')}
+        onPress={() => {
+          router.push('/profile/delete-account');
         }}
       />
       {__DEV__ ? (

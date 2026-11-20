@@ -1,5 +1,10 @@
 import { randomUUID } from 'node:crypto';
+import type { MemoryPetsRepo } from '../pets/memory-repo.js';
 import type { AuthRepo, ChallengeRecord, SessionRecord, UserRecord } from './types.js';
+
+interface StoredUser extends UserRecord {
+  deletedAt: Date | null;
+}
 
 interface StoredSession extends SessionRecord {
   refreshTokenHash: string;
@@ -8,9 +13,11 @@ interface StoredSession extends SessionRecord {
 
 /** In-memory AuthRepo for tests and the OpenAPI export. Not for production. */
 export class MemoryAuthRepo implements AuthRepo {
-  readonly users = new Map<string, UserRecord>();
+  readonly users = new Map<string, StoredUser>();
   readonly challenges = new Map<string, ChallengeRecord>();
   readonly sessions = new Map<string, StoredSession>();
+
+  constructor(private readonly pets?: MemoryPetsRepo) {}
 
   createChallenge(input: { phone: string; codeHash: string; expiresAt: Date; now: Date }) {
     const c: ChallengeRecord = {
@@ -52,15 +59,23 @@ export class MemoryAuthRepo implements AuthRepo {
   }
 
   findOrCreateUserByPhone(phone: string) {
-    const existing = [...this.users.values()].find((u) => u.phone === phone);
-    if (existing) return Promise.resolve({ user: existing, isNew: false });
-    const user: UserRecord = { id: randomUUID(), phone, name: null, locale: 'uk' };
+    const existing = [...this.users.values()].find((u) => !u.deletedAt && u.phone === phone);
+    if (existing) return Promise.resolve({ user: toUser(existing), isNew: false });
+    const user: StoredUser = {
+      id: randomUUID(),
+      phone,
+      name: null,
+      locale: 'uk',
+      deletedAt: null,
+    };
     this.users.set(user.id, user);
-    return Promise.resolve({ user, isNew: true });
+    return Promise.resolve({ user: toUser(user), isNew: true });
   }
 
   getUser(id: string) {
-    return Promise.resolve(this.users.get(id) ?? null);
+    const u = this.users.get(id);
+    if (!u || u.deletedAt) return Promise.resolve(null);
+    return Promise.resolve(toUser(u));
   }
 
   createSession(input: {
@@ -96,4 +111,43 @@ export class MemoryAuthRepo implements AuthRepo {
       if (s.familyId === familyId && !s.revokedAt) s.revokedAt = now;
     return Promise.resolve();
   }
+
+  async deleteAccount(userId: string, now: Date) {
+    if (this.pets) {
+      for (const [petId, memberMap] of this.pets.members.entries()) {
+        const role = memberMap.get(userId);
+        if (!role) continue;
+        const pet = this.pets.pets.get(petId);
+        if (role === 'owner' && pet && !pet.deletedAt) {
+          const others = [...memberMap.entries()].filter(
+            ([uid]) => uid !== userId && !this.users.get(uid)?.deletedAt,
+          );
+          if (!others.some(([, r]) => r === 'owner')) {
+            const nextEditor = others.find(([, r]) => r === 'editor');
+            if (nextEditor) {
+              memberMap.set(nextEditor[0], 'owner');
+            } else {
+              await this.pets.softDeletePet(petId, now);
+            }
+          }
+        }
+        memberMap.delete(userId);
+      }
+    }
+
+    for (const s of this.sessions.values()) {
+      if (s.userId === userId && !s.revokedAt) s.revokedAt = now;
+    }
+
+    const user = this.users.get(userId);
+    if (user && !user.deletedAt) {
+      user.deletedAt = now;
+      user.phone = null;
+      user.name = null;
+    }
+  }
+}
+
+function toUser({ deletedAt: _deletedAt, ...user }: StoredUser): UserRecord {
+  return user;
 }

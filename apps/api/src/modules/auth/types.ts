@@ -49,6 +49,12 @@ export interface AuthRepo {
   getSession(id: string): Promise<SessionRecord | null>;
   revokeSession(id: string, now: Date): Promise<void>;
   revokeFamily(familyId: string, now: Date): Promise<void>;
+  /**
+   * Soft-deletes the user, frees their phone/identities, revokes all sessions & open invites,
+   * transfers owned pets to the earliest active editor (or soft-deletes if none), and removes
+   * the user from `pet_members`.
+   */
+  deleteAccount(userId: string, now: Date): Promise<void>;
 }
 
 /** Delivers a one-time code to the phone (Viber → SMS in production, log in dev). */

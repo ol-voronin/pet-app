@@ -1,5 +1,6 @@
 import {
   authTokensSchema,
+  deleteAccountBodySchema,
   errorResponseSchema,
   otpRequestBodySchema,
   otpRequestResponseSchema,
@@ -120,6 +121,27 @@ export const authModule: FastifyPluginAsyncZod<{ service: AuthService }> = async
       if (!auth) throw new AuthError('unauthorized');
       const user = await service.me(auth.userId);
       return { id: user.id, phone: user.phone, name: user.name, locale: user.locale };
+    },
+  );
+
+  app.delete(
+    '/me',
+    {
+      onRequest: [app.authenticate],
+      schema: {
+        operationId: 'deleteMe',
+        tags: ['auth'],
+        summary: 'Delete the current account after OTP confirmation on the user phone',
+        security: [{ bearerAuth: [] }],
+        body: deleteAccountBodySchema,
+        response: { 204: z.null(), ...errors },
+      },
+    },
+    async (req, reply) => {
+      const auth = req.auth;
+      if (!auth) throw new AuthError('unauthorized');
+      await service.deleteAccount(auth.userId, req.body);
+      return reply.status(204).send(null);
     },
   );
   return Promise.resolve();

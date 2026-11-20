@@ -58,6 +58,13 @@ export const refreshBodySchema = z
   .object({ refreshToken: z.string().min(20) })
   .meta({ id: 'RefreshBody' });
 
+export const deleteAccountBodySchema = z
+  .object({
+    challengeId: z.uuid(),
+    code: z.string().regex(new RegExp(`^\\d{${String(OTP_LENGTH)}}$`)),
+  })
+  .meta({ id: 'DeleteAccountBody' });
+
 export const errorResponseSchema = z
   .object({ error: z.string(), message: z.string().optional() })
   .meta({ id: 'ErrorResponse' });
@@ -65,5 +72,6 @@ export const errorResponseSchema = z
 export type OtpRequestBody = z.infer<typeof otpRequestBodySchema>;
 export type OtpRequestResponse = z.infer<typeof otpRequestResponseSchema>;
 export type OtpVerifyBody = z.infer<typeof otpVerifyBodySchema>;
+export type DeleteAccountBody = z.infer<typeof deleteAccountBodySchema>;
 export type AuthTokens = z.infer<typeof authTokensSchema>;
 export type ApiUser = z.infer<typeof userSchema>;

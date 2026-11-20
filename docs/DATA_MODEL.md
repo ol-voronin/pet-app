@@ -11,6 +11,16 @@ id (uuid), phone (nullable, unique), name, avatar_url, locale (`uk`|`en`), creat
 
 `phone` необязателен: при входе через Apple/Google телефона может не быть.
 
+#### Удаление аккаунта (`DELETE /me`)
+Подтверждается одноразовым кодом OTP на телефон текущего пользователя.
+- Пользователь получает `deleted_at`; `phone`, `name`, `avatar_url` очищаются, а строки в `auth_identities` удаляются, чтобы телефон сразу освободился для новой регистрации.
+- Все активные `sessions` и открытые `pet_invites` пользователя отзываются (`revoked_at`).
+- Питомцы, где пользователь — `owner`:
+  - если у питомца есть другой активный `editor`, роль `owner` передаётся старшему по стажу (`pet_members.created_at ASC`);
+  - если `editor` нет (пользователь единственный участник или остались только `viewer`), питомец удаляется мягко (`pets.deleted_at`).
+- Записи удаляемого пользователя в `pet_members` удаляются, чтобы не занимать слот семейного лимита у переданных питомцев.
+- Физическое стирание по сроку хранения — отдельной задачей.
+
 ### auth_identities — способы входа
 id, user_id, provider (`phone`|`apple`|`google`), subject (телефон в E.164 или `sub` провайдера),
 email (nullable), created_at, last_used_at · unique (provider, subject)

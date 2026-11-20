@@ -5,7 +5,8 @@ export type AuthErrorCode =
   | 'too_many_attempts'
   | 'invalid_code'
   | 'invalid_token'
-  | 'unauthorized';
+  | 'unauthorized'
+  | 'phone_required';
 
 const statusByCode: Record<AuthErrorCode, number> = {
   too_many_requests: 429,
@@ -15,6 +16,7 @@ const statusByCode: Record<AuthErrorCode, number> = {
   invalid_code: 400,
   invalid_token: 401,
   unauthorized: 401,
+  phone_required: 400,
 };
 
 export class AuthError extends Error {
