@@ -1,0 +1,20 @@
+import type { GeocodeResult, Place, PlaceCategory, PlaceListItem } from '@pet-app/shared';
+
+export interface PlaceFilters {
+  /** Empty — every category. */
+  categories: readonly PlaceCategory[];
+  open247: boolean;
+}
+
+export interface Point {
+  lat: number;
+  lon: number;
+}
+
+/** What the map screen needs from the server. The HTTP implementation is in `client.ts`. */
+export interface PlacesApi {
+  nearby(center: Point, radiusM: number, filters: PlaceFilters): Promise<PlaceListItem[]>;
+  search(query: string, near: Point, filters: PlaceFilters): Promise<PlaceListItem[]>;
+  get(placeId: string): Promise<Place>;
+  geocode(query: string, near: Point): Promise<GeocodeResult[]>;
+}

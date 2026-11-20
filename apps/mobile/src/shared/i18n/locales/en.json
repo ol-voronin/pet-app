@@ -221,5 +221,93 @@
     "sheetTitle": "Sheet",
     "sheetBody": "A map place card or an action picker will live here.",
     "dark": "Dark"
+  },
+  "places": {
+    "searchPlaceholder": "Name or address",
+    "searchLabel": "Search places",
+    "clearSearch": "Clear search",
+    "listNote": "The map arrives in the next version of the app. For now, here is a list of places nearby.",
+    "category": {
+      "clinic": "Vet clinic",
+      "pharmacy": "Vet pharmacy",
+      "dog_park": "Dog park",
+      "shop": "Pet shop",
+      "groomer": "Groomer",
+      "trainer": "Dog trainer",
+      "cafe": "Cafe",
+      "other": "Other"
+    },
+    "categoryPlural": {
+      "clinic": "Clinics",
+      "pharmacy": "Pharmacies",
+      "dog_park": "Dog parks",
+      "shop": "Pet shops",
+      "groomer": "Groomers",
+      "trainer": "Trainers"
+    },
+    "categorySearchWords": {
+      "clinic": "vet clinic veterinary doctor",
+      "pharmacy": "pharmacy medicine drugs",
+      "dog_park": "dog park walk playground",
+      "shop": "pet shop store food",
+      "groomer": "groomer grooming haircut",
+      "trainer": "trainer training school"
+    },
+    "filter": {
+      "open247": "Open 24/7",
+      "radius": "Radius",
+      "radiusKm": "{{km}} km",
+      "categories": "Categories"
+    },
+    "near": {
+      "default": "Kharkiv centre",
+      "me": "Near you",
+      "address": "Near the address: {{address}}",
+      "locate": "Show places near me",
+      "locating": "Finding your location…",
+      "denied": "No access to location. Allow it in the phone settings or search by address.",
+      "unavailable": "Could not find your location. Try again or search by address.",
+      "reset": "Reset"
+    },
+    "distance": {
+      "m": "{{value}} m",
+      "km": "{{value}} km"
+    },
+    "list": {
+      "empty": "Nothing found nearby",
+      "widen": "Widen the radius to {{km}} km",
+      "widest": "Try other categories or search by name",
+      "error": "Could not load places",
+      "offline": "No network. Map places are available online only.",
+      "count_one": "{{count}} place",
+      "count_other": "{{count}} places"
+    },
+    "suggest": {
+      "categories": "Categories",
+      "places": "Places",
+      "addresses": "Addresses",
+      "recent": "Recent searches",
+      "clearRecent": "Clear",
+      "showAll": "Show all: {{category}}",
+      "nothing": "Nothing found. Check the name or try an address.",
+      "addressUnavailable": "Address search is unavailable right now",
+      "offline": "No network — showing recent searches only"
+    },
+    "card": {
+      "call": "Call",
+      "route": "Directions",
+      "website": "Website",
+      "hours": "Opening hours",
+      "open247": "Open around the clock",
+      "emergency": "Emergency care",
+      "fenced": "Fenced",
+      "noName": "No name",
+      "verified": "Verified {{date}} · data © OpenStreetMap",
+      "notVerified": "Data © OpenStreetMap, not verified by hand yet",
+      "noContacts": "No phone number listed",
+      "error": "Could not load the card",
+      "cannotOpen": "Could not open an app for this action"
+    },
+    "attribution": "Data: © OpenStreetMap"
   }
 }

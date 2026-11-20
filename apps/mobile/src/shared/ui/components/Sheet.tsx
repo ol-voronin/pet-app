@@ -48,6 +48,7 @@ export function Sheet({ visible, onClose, title, closeLabel, children }: SheetPr
 }
 
 const styles = StyleSheet.create({
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+  // Never taller than the screen: long content (or a large system font) scrolls inside.
+  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '90%' },
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2 },
 });
