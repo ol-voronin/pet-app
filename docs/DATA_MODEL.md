@@ -54,8 +54,18 @@ pet_id, user_id, role (`owner`|`editor`|`viewer`), invited_by, created_at · PK 
 при окончании Plus существующие участники не удаляются, блокируются только новые приглашения.
 
 ### pet_invites — приглашения по ссылке
-id, pet_id, role (`editor`|`viewer`), token_hash, created_by, created_at, expires_at,
+id, token_hash (unique), role (`editor`|`viewer`), created_by, created_at, expires_at,
 accepted_by (nullable), accepted_at (nullable), revoked_at (nullable)
+
+### pet_invite_pets — питомцы приглашения
+invite_id, pet_id · PK (invite_id, pet_id)
+
+- Одно приглашение — для одного человека и может охватывать нескольких питомцев (решение от 20.11.2026).
+- Ссылка живёт 72 часа; в БД хранится только хэш токена. Приглашает только владелец.
+- Лимит проверяется по каждому питомцу при создании и при принятии. Если у одного из питомцев места нет,
+  приглашение не принимается целиком. Удалённый питомец пропускается.
+- Отзыв доступа: владелец удаляет участника из `pet_members`; неиспользованную ссылку можно отменить (`revoked_at`).
+- Реализовано: миграция `0004_family`.
 
 ## Медкарта
 

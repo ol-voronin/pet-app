@@ -2,18 +2,20 @@ import { buildApp } from './build-app.js';
 import { MemoryAuthRepo } from './modules/auth/memory-repo.js';
 import { LogOtpSender } from './modules/auth/otp-sender.js';
 import { AuthService } from './modules/auth/service.js';
+import { MemoryFamilyRepo } from './modules/family/memory-repo.js';
+import { FamilyService } from './modules/family/service.js';
 import { MemoryPetsRepo } from './modules/pets/memory-repo.js';
 import { PetsService } from './modules/pets/service.js';
 
 /** Builds the OpenAPI document. Version is fixed so the committed spec is stable. */
 export async function generateOpenApi(): Promise<string> {
-  const auth = new AuthService({
-    repo: new MemoryAuthRepo(),
-    sender: new LogOtpSender(),
-    secret: 'openapi-export-only-secret-0000000000',
-  });
-  const pets = new PetsService({ repo: new MemoryPetsRepo(), storage: null });
-  const app = await buildApp({ version: '0.0.0', auth, pets });
+  const authRepo = new MemoryAuthRepo();
+  const petsRepo = new MemoryPetsRepo();
+  const secret = 'openapi-export-only-secret-0000000000';
+  const auth = new AuthService({ repo: authRepo, sender: new LogOtpSender(), secret });
+  const pets = new PetsService({ repo: petsRepo, storage: null });
+  const family = new FamilyService({ repo: new MemoryFamilyRepo(petsRepo, authRepo), secret });
+  const app = await buildApp({ version: '0.0.0', auth, pets, family });
   await app.ready();
   const spec = app.swagger();
   await app.close();

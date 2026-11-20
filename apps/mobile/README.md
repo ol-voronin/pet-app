@@ -26,6 +26,9 @@ pnpm -F mobile start     # Metro for the installed development build
 - `src/features/pets` — pets home, card and form. Logic lives in plain modules with tests (`form.ts`, `age.ts`,
   `photo.ts`, `queries.ts`); `hooks.ts` and `components/` are thin wrappers. Routes: `app/pets/new`,
   `app/pets/[petId]`, `app/pets/[petId]/edit`.
+- `src/features/family` — family access: invite (pick pets and a role, system share sheet), accept by link
+  (`app/invite/[token]`, also reachable by pasting the link in Profile), members on the pet card.
+  `petapp://invite/<token>` opens the app only in a development or store build, not in Expo Go.
 - `src/features/onboarding` — decides whether a signed-in user sees «Додайте улюбленця» (`app/welcome.tsx`) or the
   tabs: shown once, to a user with no pets; the "finished" flag is stored on the device per user.
 - `src/shared/api` — HTTP errors (`ApiError`, `NetworkError`) and the TanStack Query cache (cleared on sign-out).

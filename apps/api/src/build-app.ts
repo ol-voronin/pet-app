@@ -9,6 +9,8 @@ import {
 } from 'fastify-type-provider-zod';
 import { authModule } from './modules/auth/index.js';
 import type { AuthService } from './modules/auth/service.js';
+import { familyModule, inviteLandingModule } from './modules/family/index.js';
+import type { FamilyService } from './modules/family/service.js';
 import { healthModule } from './modules/health/index.js';
 import { petsModule } from './modules/pets/index.js';
 import type { PetsService } from './modules/pets/service.js';
@@ -20,6 +22,8 @@ export interface AppOptions {
   auth?: AuthService;
   /** Pets routes; need `auth` for the signed-in user. */
   pets?: PetsService;
+  /** Family access: invites and members; needs `auth`. */
+  family?: FamilyService;
   /** Serve Swagger UI on `/docs`. Off by default: used in local development only. */
   docsUi?: boolean;
 }
@@ -64,6 +68,10 @@ export async function configureApp(app: App, opts: AppOptions) {
   if (opts.auth) await app.register(authModule, { service: opts.auth });
   if (opts.auth && opts.pets) {
     await app.register(petsModule, { service: opts.pets, auth: opts.auth });
+  }
+  if (opts.auth && opts.family) {
+    await app.register(familyModule, { service: opts.family, auth: opts.auth });
+    await app.register(inviteLandingModule);
   }
 
   return app;

@@ -25,6 +25,13 @@ export default function ProfileScreen() {
         </Card>
       ) : null}
       <Button
+        variant="secondary"
+        title={t('profile.haveInvite')}
+        onPress={() => {
+          router.push('/invite/enter');
+        }}
+      />
+      <Button
         variant="danger"
         title={t('profile.signOut')}
         loading={signingOut}

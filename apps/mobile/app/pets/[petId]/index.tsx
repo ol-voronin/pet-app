@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { PetMembersCard } from '@/features/family/components/PetMembersCard';
 import { petAge } from '@/features/pets/age';
 import { PetAvatar } from '@/features/pets/components/PetAvatar';
 import { formatDisplayDate } from '@/features/pets/form';
@@ -109,6 +110,8 @@ export default function PetCardScreen() {
           </View>
         ))}
       </Card>
+
+      <PetMembersCard petId={petId} isOwner={data.role === 'owner'} />
 
       {canEdit ? (
         <Button

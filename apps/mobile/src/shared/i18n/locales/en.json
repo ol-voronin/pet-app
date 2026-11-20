@@ -44,7 +44,8 @@
       "status": "Status",
       "later": "Coming later",
       "add": "Add a pet",
-      "loadError": "Could not load your pets. Check your connection and try again"
+      "loadError": "Could not load your pets. Check your connection and try again",
+      "invite": "Invite to the family"
     },
     "empty": {
       "title": "Add your pet",
@@ -134,9 +135,65 @@
       }
     }
   },
+  "family": {
+    "invite": {
+      "title": "Invite to the family",
+      "subtitle": "One invite is for one person. It can open access to several pets at once.",
+      "pets": "Pets",
+      "noRoom": "No room: {{count}} of {{limit}} members",
+      "role": "What they can do",
+      "roleEditor": "Edit",
+      "roleViewer": "View only",
+      "send": "Send the invite",
+      "noPets": "Only the owner of a pet can invite.",
+      "shareMessage": "I invite you to look after my pets in Pet App: {{names}}. The link works for {{hours}} h: {{link}}",
+      "sentTitle": "The invite is ready",
+      "sentBody": "The link works for {{hours}} hours and is for one person.",
+      "shareAgain": "Share again",
+      "done": "Done"
+    },
+    "accept": {
+      "title": "Invite",
+      "from": "{{who}} invites you to look after their pets",
+      "someone": "The owner",
+      "roleEditor": "You will be able to add and change records.",
+      "roleViewer": "You will only be able to view.",
+      "alreadyMember": "you already have access",
+      "accept": "Accept",
+      "later": "Not now"
+    },
+    "enter": {
+      "title": "I have an invite",
+      "label": "Link or code",
+      "placeholder": "Paste the link from the invite",
+      "open": "Open the invite",
+      "invalid": "This does not look like an invite. Paste the whole link"
+    },
+    "members": {
+      "title": "Who has access",
+      "you": "you",
+      "invite": "Invite",
+      "remove": "Remove access",
+      "removeTitle": "Remove access?",
+      "removeBody": "{{who}} will no longer see this pet.",
+      "limit": "On the free plan — up to {{limit}} members per pet."
+    },
+    "errors": {
+      "expired": "The invite has expired. Ask for a new one",
+      "used": "Another person has already used this invite",
+      "revoked": "The invite was cancelled",
+      "notFound": "Invite not found. Check the link",
+      "limit": "No room: up to {{limit}} members per pet on the free plan",
+      "own": "This is your own invite — send it to someone else",
+      "forbidden": "You are not allowed to do this",
+      "network": "Cannot reach the server. Check your connection and try again",
+      "unknown": "Something went wrong. Try again"
+    }
+  },
   "profile": {
     "phone": "Phone",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "haveInvite": "I have an invite"
   },
   "common": {
     "close": "Close",
