@@ -18,7 +18,13 @@
       "expo-status-bar",
       "expo-localization",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Щоб показати ветклініки, аптеки та майданчики поруч із вами."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

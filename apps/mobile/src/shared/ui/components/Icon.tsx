@@ -17,6 +17,22 @@ const glyphs = {
   chevron: 'chevron-right',
   checked: 'checkbox-marked-circle',
   unchecked: 'checkbox-blank-circle-outline',
+  // Map.
+  search: 'magnify',
+  clear: 'close-circle-outline',
+  phone: 'phone-outline',
+  route: 'directions',
+  clock: 'clock-outline',
+  locate: 'crosshairs-gps',
+  address: 'map-marker-radius-outline',
+  recent: 'history',
+  web: 'web',
+  clinic: 'hospital-box-outline',
+  pharmacy: 'pill',
+  dogPark: 'tree-outline',
+  shop: 'shopping-outline',
+  groomer: 'content-cut',
+  trainer: 'whistle-outline',
 } as const satisfies Record<string, ComponentProps<typeof MaterialCommunityIcons>['name']>;
 
 export type IconName = keyof typeof glyphs;

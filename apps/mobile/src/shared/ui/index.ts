@@ -1,6 +1,7 @@
 export { Avatar, type AvatarProps } from './components/Avatar';
 export { Button, type ButtonProps, type ButtonVariant } from './components/Button';
 export { Card } from './components/Card';
+export { Chip, type ChipProps } from './components/Chip';
 export { Icon, type IconName, type IconProps } from './components/Icon';
 export { Input, type InputProps } from './components/Input';
 export { ListItem, type ListItemProps } from './components/ListItem';
