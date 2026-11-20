@@ -44,6 +44,14 @@ APP_ENV=staging OTP_FIXED_CODE=000000 DATABASE_URL=… JWT_SECRET=… node --no-
 Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` branch), `JWT_SECRET`,
 `OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
 
+## Family limit check (live)
+The Free member limit is enforced in the database transaction that adds a member: a per-pet advisory lock, then
+the insert only while every pet has room (`src/modules/family/drizzle-repo.ts`, QA #50). Unit tests use the in-memory
+repository, so the SQL itself is checked by a live script against Neon `dev` (creates and deletes its own rows):
+```bash
+DATABASE_URL=… pnpm -F api check:family-limit
+```
+
 ## Map API
 `src/modules/places`: routes behind sign-in. A person gets public, approved, not hidden places and their family's own markers.
 - `GET /places?bbox=west,south,east,north&categories=clinic,pharmacy&open247=true` — pins for the visible map
