@@ -90,10 +90,10 @@
 - `places.phones` стал jsonb-массивом (миграция `0006`): массивы Postgres Directus редактировать не умеет.
 
 ### Сервер в Hetzner (готово в коде, ждёт владельца)
-- Решение — ADR-0009. Образ собирается в GitHub Actions на каждый push в `main` и передаётся на сервер по SSH;
-  на сервере `deploy/docker-compose.yml`: API, Caddy (HTTPS), Redis. База — Neon, файлы — Neon Object Storage.
-- **За владельцем:** шаги из `apps/api/README.md` («Пошагово для владельца»): Docker, пользователь `deploy`, ключ,
-  адрес, `/opt/pet-app/.env`, секреты GitHub `SSH_HOST` и `SSH_KEY`. Пока секретов нет, workflow только собирает образ.
+- Решение — ADR-0009 (и дополнение от 20.11). На сервере `deploy/docker-compose.yml`: API, Redis; Caddy — свой или
+  чужой. Сервер обновляется сам: таймер раз в 5 минут запускает `deploy/update.sh` (забирает `main`, собирает образ,
+  ждёт `healthy`, откатывает при сбое). Секреты GitHub не нужны; доставка по SSH из `deploy.yml` — запасная.
+- **За владельцем:** один раз `deploy/setup-server.sh` на сервере (команда — в `apps/api/README.md`).
 - После первого деплоя: проверить `https://<адрес>/health`, переключить `apps/mobile/app.json` → `extra.apiUrl`.
 - Проверено локально 20.11: сборка образа, `docker compose up`, HTTPS через Caddy, вход `000000` и питомцы на Neon `dev`.
   На самом сервере не проверено — доступа у Claude Code нет.

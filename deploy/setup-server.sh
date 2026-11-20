@@ -4,8 +4,8 @@
 #   curl -fsSL https://raw.githubusercontent.com/ol-voronin/pet-app/main/deploy/setup-server.sh | sudo bash
 #
 # It installs Docker if missing, creates the `deploy` user and /opt/pet-app, writes /opt/pet-app/.env
-# (asks for the database address), makes the SSH key GitHub Actions will deploy with, and prints the two
-# values to paste into GitHub → Settings → Secrets → Actions: SSH_HOST and SSH_KEY.
+# (asks for the database address), builds and starts the API, connects it to the web server and turns on
+# auto-deploy: a timer pulls `main` from GitHub every 5 minutes (deploy/update.sh). No keys or GitHub secrets.
 # Safe to run again: what exists is kept.
 set -euo pipefail
 
@@ -115,11 +115,12 @@ if ss -ltnH '( sport = :80 or sport = :443 )' | grep -q .; then
 fi
 echo "OK"
 
-say "2/7 Docker"
+say "2/7 Docker and git"
 if ! command -v docker >/dev/null || ! docker compose version >/dev/null 2>&1; then
   curl -fsSL https://get.docker.com | sh
 fi
 docker compose version
+command -v git >/dev/null || { apt-get update -qq && apt-get install -y -qq git; }
 
 say "3/7 User 'deploy' and $DIR"
 id deploy >/dev/null 2>&1 || adduser --disabled-password --gecos "" deploy
@@ -128,17 +129,7 @@ install -d -o deploy -g deploy -m 750 "$DIR"
 install -d -o deploy -g deploy -m 700 /home/deploy/.ssh
 echo "OK"
 
-say "4/7 Key for GitHub Actions"
-KEY=/root/pet-app-deploy-key
-if [ ! -f "$KEY" ]; then
-  ssh-keygen -q -t ed25519 -N "" -C "pet-app deploy (GitHub Actions)" -f "$KEY"
-fi
-touch /home/deploy/.ssh/authorized_keys
-grep -qxF "$(cat "$KEY.pub")" /home/deploy/.ssh/authorized_keys || cat "$KEY.pub" >> /home/deploy/.ssh/authorized_keys
-chown deploy:deploy /home/deploy/.ssh/authorized_keys && chmod 600 /home/deploy/.ssh/authorized_keys
-echo "OK"
-
-say "5/7 Settings in $DIR/.env"
+say "4/7 Settings in $DIR/.env"
 # The address the server goes out from (Hetzner puts the public IP on the main interface); no outside service asked.
 IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "src") print $(i + 1)}' || true)
 [ -n "$IP" ] || IP=$(hostname -I | awk '{print $1}')
@@ -171,20 +162,58 @@ if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
 fi
 echo "OK"
 
+say "5/7 Build and start the API (a few minutes the first time)"
+SRC=$DIR/src
+if [ ! -d "$SRC/.git" ]; then
+  sudo -u deploy git clone -q https://github.com/ol-voronin/pet-app.git "$SRC"
+fi
+sudo -u deploy git -C "$SRC" fetch -q origin main
+sudo -u deploy git -C "$SRC" checkout -q --detach origin/main
+cat >/etc/systemd/system/pet-app-update.service <<UNIT
+[Unit]
+Description=pet-app: deploy the API from GitHub main (deploy/update.sh)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+ExecStart=$SRC/deploy/update.sh
+TimeoutStartSec=30min
+UNIT
+cat >/etc/systemd/system/pet-app-update.timer <<UNIT
+[Unit]
+Description=pet-app: check GitHub main every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+UNIT
+systemctl daemon-reload
+sudo -u deploy "$SRC/deploy/update.sh" --force
+systemctl enable --now pet-app-update.timer >/dev/null 2>&1
+echo "Auto-deploy: on (every 5 minutes; log: journalctl -u pet-app-update)"
+
 say "6/7 Web server"
 if [ "$MODE" = own ]; then
-  echo "Our own Caddy (starts with the first deploy)."
+  echo "Our own Caddy (started with the stack)."
 else
   connect_shared_caddy
 fi
 
-say "7/7 Paste these into GitHub: github.com/ol-voronin/pet-app → Settings → Secrets and variables → Actions → New repository secret"
+say "7/7 Check"
+DOMAIN=$(env_get API_DOMAIN)
+for i in $(seq 1 30); do
+  if curl -fsS --max-time 5 "https://$DOMAIN/health" >/dev/null 2>&1; then
+    echo "Done: https://$DOMAIN/health answers. Tell Claude."
+    exit 0
+  fi
+  sleep 3
+done
+curl -sS --max-time 5 "https://$DOMAIN/health" || true
 echo
-echo "SSH_HOST:"
-echo "$IP"
-echo
-echo "SSH_KEY (everything from BEGIN to END, both lines included):"
-cat "$KEY"
-echo
-echo "Then: Actions → Deploy API → Run workflow (branch main). The API will answer at https://$(env_get API_DOMAIN)/health"
+echo "https://$DOMAIN/health does not answer yet (above). Send this screen to Claude."
 echo "If Hetzner's firewall (Robot → Firewall) is on, allow incoming TCP 80, 443 and UDP 443 there too."
