@@ -6,6 +6,8 @@ import { loadConfig } from './config.js';
 import { DrizzleAuthRepo } from './modules/auth/drizzle-repo.js';
 import { LogOtpSender } from './modules/auth/otp-sender.js';
 import { AuthService } from './modules/auth/service.js';
+import { DrizzleFamilyRepo } from './modules/family/drizzle-repo.js';
+import { FamilyService } from './modules/family/service.js';
 import { DrizzlePetsRepo } from './modules/pets/drizzle-repo.js';
 import { PetsService } from './modules/pets/service.js';
 import { createStorage } from './modules/storage/index.js';
@@ -25,12 +27,14 @@ const auth = new AuthService({
   ...(config.OTP_FIXED_CODE ? { fixedOtp: config.OTP_FIXED_CODE } : {}),
 });
 const pets = new PetsService({ repo: new DrizzlePetsRepo(db), storage: createStorage(config) });
+const family = new FamilyService({ repo: new DrizzleFamilyRepo(db), secret: config.JWT_SECRET });
 // Fastify is created here (not in build-app) because Vercel's Fastify preset looks for the file that imports it.
 const app = Fastify({ logger: { level: config.LOG_LEVEL } }).withTypeProvider<ZodTypeProvider>();
 await configureApp(app, {
   version: config.APP_VERSION,
   auth,
   pets,
+  family,
   // Swagger UI only locally: its dependency chain does not load on Vercel's Node runtime.
   docsUi: config.APP_ENV === 'development',
 });

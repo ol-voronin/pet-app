@@ -25,7 +25,7 @@ export default function RootLayout() {
   }
 
   const signedIn = status === 'signedIn';
-  // Pets screens sit on top of the tabs with a header and a back button.
+  // Pets and invite screens sit on top of the tabs with a header and a back button.
   const petScreen = {
     headerShown: true,
     headerStyle: { backgroundColor: colors.surface },
@@ -42,11 +42,15 @@ export default function RootLayout() {
           <Stack.Screen name="pets/new" options={petScreen} />
           <Stack.Screen name="pets/[petId]/index" options={petScreen} />
           <Stack.Screen name="pets/[petId]/edit" options={petScreen} />
+          <Stack.Screen name="invite/new" options={petScreen} />
+          <Stack.Screen name="invite/enter" options={petScreen} />
           <Stack.Screen name="ui-kit" />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
+        {/* Open in both states: a signed-out person is sent to sign in and comes back to it. */}
+        <Stack.Screen name="invite/[token]" options={petScreen} />
       </Stack>
     </QueryClientProvider>
   );

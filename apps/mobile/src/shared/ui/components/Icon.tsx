@@ -15,6 +15,8 @@ const glyphs = {
   profile: 'account-circle-outline',
   add: 'plus',
   chevron: 'chevron-right',
+  checked: 'checkbox-marked-circle',
+  unchecked: 'checkbox-blank-circle-outline',
 } as const satisfies Record<string, ComponentProps<typeof MaterialCommunityIcons>['name']>;
 
 export type IconName = keyof typeof glyphs;

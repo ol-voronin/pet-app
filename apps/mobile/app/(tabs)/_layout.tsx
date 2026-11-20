@@ -1,6 +1,7 @@
 import { Redirect, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { usePendingInvite } from '@/features/family/hooks';
 import { useAddPetGate } from '@/features/onboarding/hooks';
 import { Icon, useTheme, type IconName } from '@/shared/ui';
 
@@ -14,6 +15,12 @@ export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { gate } = useAddPetGate();
+  const pendingInvite = usePendingInvite((s) => s.token);
+
+  // An invite link opened before sign-in comes first: the invited person usually has no pets yet.
+  if (pendingInvite) {
+    return <Redirect href={{ pathname: '/invite/[token]', params: { token: pendingInvite } }} />;
+  }
 
   // First sign-in with no pets opens «Додайте улюбленця» instead of the map (PRD, onboarding).
   if (gate === 'show') return <Redirect href="/welcome" />;

@@ -31,6 +31,16 @@ export function PetsHome({ pets }: { pets: ApiPet[] }) {
           router.push('/pets/new');
         }}
       />
+      {/* Only an owner can invite; one invite can cover all of their pets. */}
+      {pets.some((pet) => pet.role === 'owner') ? (
+        <Button
+          variant="ghost"
+          title={t('pets.home.invite')}
+          onPress={() => {
+            router.push('/invite/new');
+          }}
+        />
+      ) : null}
     </View>
   );
 }
