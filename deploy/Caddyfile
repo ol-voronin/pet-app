@@ -3,10 +3,6 @@
 {$API_DOMAIN} {
 	encode zstd gzip
 
-	# The API takes JSON only; files go straight to object storage by signed URL.
-	request_body {
-		max_size 1MB
-	}
 
 	header {
 		Strict-Transport-Security "max-age=31536000"
@@ -14,5 +10,16 @@
 		-Server
 	}
 
-	reverse_proxy api:3000
+	# Admin panel (Directus), when it is switched on; otherwise this path answers 502.
+	handle_path /cms/* {
+		reverse_proxy directus:8055
+	}
+
+	handle {
+		# The API takes JSON only; files go straight to object storage by signed URL.
+		request_body {
+			max_size 1MB
+		}
+		reverse_proxy api:3000
+	}
 }

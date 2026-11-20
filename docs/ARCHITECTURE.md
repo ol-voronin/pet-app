@@ -50,7 +50,8 @@ admin (Directus)  ──┘          │                    ├► Object Storag
 |---|---|
 | БД | Neon (PostgreSQL + PostGIS), регион EU |
 | API + воркеры | Выделенный сервер владельца в Hetzner Falkenstein (EU): Docker Compose, Caddy (HTTPS) — ADR-0009. Vercel — запасной staging |
-| Вспомогательное | VPS владельца в Украине (adm.tools): кандидат для Directus-админки и резервных копий |
+| Админка точек | Directus 12 (тариф Core, бесплатно) на том же сервере, `https://<домен>/cms/admin`; отдельная роль БД видит только `places` |
+| Вспомогательное | VPS владельца в Украине (adm.tools): кандидат для резервных копий |
 | Файлы | Neon Object Storage (Франкфурт), приватный бакет (ADR-0006) |
 | Очередь/кэш | Redis на том же сервере (в `deploy/docker-compose.yml`), наружу не открыт |
 | B2B-кабинет | Vercel |
