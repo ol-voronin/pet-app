@@ -44,6 +44,22 @@ APP_ENV=staging OTP_FIXED_CODE=000000 DATABASE_URL=… JWT_SECRET=… node --no-
 Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` branch), `JWT_SECRET`,
 `OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
 
+## Map places (OpenStreetMap import)
+`src/modules/places/osm`: `mapping.ts` turns OSM tags into our categories, `import.ts` holds the rules,
+`src/scripts/import-osm.ts` is the entry. Data source is the Overpass API; Google Places is never used.
+```bash
+DATABASE_URL=… pnpm -F api osm:import
+```
+Other modes: `--bbox=south,west,north,east` (partial run), `--from-file=overpass.json`, `--dry-run`
+(fetch and count, write nothing), `--save=file.json` (keep the raw answer). `OVERPASS_URL` overrides the servers.
+
+Rules: an unverified point is refreshed from OSM; a point a person verified (`verified_at`) is never
+overwritten — only its `osm_tags` snapshot is; a point that left OSM gets `osm_missing_since` and is kept;
+if a full run returns under 70% of the points shown now, nothing is hidden (a broken answer, not a mass closure).
+
+The `OSM import` workflow runs it every Monday. It writes only when the repository secret
+`OSM_IMPORT_DATABASE_URL` is set; otherwise it fetches, counts and stores the raw answer as an artifact.
+
 ## Error reports (Sentry)
 Set `SENTRY_DSN` and requests that end with a 5xx are reported to Sentry; without it nothing is sent and the
 SDK is not even loaded. Reports carry the HTTP method, the route pattern (`/pets/:petId`) and the request id —

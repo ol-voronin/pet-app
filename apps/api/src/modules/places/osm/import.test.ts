@@ -131,8 +131,9 @@ describe('Overpass', () => {
 
   it('falls back to the next server and reports the data age', async () => {
     const calls: string[] = [];
-    const fake = ((url: string) => {
+    const fake = ((url: string, init?: RequestInit) => {
       calls.push(url);
+      expect(new Headers(init?.headers).get('user-agent')).toBe('osm-places-import/1.0');
       if (url.includes('first')) return Promise.resolve(new Response('busy', { status: 429 }));
       return Promise.resolve(
         Response.json({

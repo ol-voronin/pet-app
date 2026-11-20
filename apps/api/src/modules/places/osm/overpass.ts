@@ -7,6 +7,8 @@ export const OVERPASS_ENDPOINTS = [
   'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
 ];
 
+const USER_AGENT = 'osm-places-import/1.0';
+
 /** South, west, north, east. */
 export type Bbox = readonly [number, number, number, number];
 
@@ -53,7 +55,12 @@ export async function fetchOverpass(
     try {
       const res = await fetchImpl(endpoint, {
         method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+          accept: 'application/json',
+          // Overpass servers refuse requests without a client name (HTTP 406).
+          'user-agent': USER_AGENT,
+        },
         body: new URLSearchParams({ data: query }),
         signal: AbortSignal.timeout(240_000),
       });
