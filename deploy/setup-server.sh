@@ -71,19 +71,24 @@ $domain {
 # <<< pet-app
 CADDY
 
-  local ok=1
+  # Apply it the way that Caddy is run, so its own environment (e.g. {$VARS} from a systemd EnvironmentFile) is used.
+  # A rejected config leaves the running one as it was; then the file goes back too and the reason is shown.
+  local unit out ok=1
+  unit=$(ps -o unit= -p "$pid" 2>/dev/null | tr -d ' ' || true)
   if [ -n "$cid" ]; then
-    docker exec "$cid" caddy validate --config "$inner" --adapter caddyfile >/dev/null 2>&1 &&
-      docker exec "$cid" caddy reload --config "$inner" --adapter caddyfile || ok=0
-  elif systemctl is-active --quiet caddy 2>/dev/null; then
-    caddy validate --config "$file" --adapter caddyfile >/dev/null 2>&1 && systemctl reload caddy || ok=0
+    out=$(docker exec "$cid" caddy reload --config "$inner" --adapter caddyfile 2>&1) || ok=0
+  elif [ "${unit%.service}" != "$unit" ] && [ -n "$unit" ]; then
+    echo "Service: $unit"
+    out=$(systemctl reload "$unit" 2>&1) || { ok=0; out="$out
+$(journalctl -u "$unit" -n 20 --no-pager 2>&1)"; }
   else
-    caddy validate --config "$file" --adapter caddyfile >/dev/null 2>&1 &&
-      caddy reload --config "$file" --adapter caddyfile || ok=0
+    out=$(caddy reload --config "$file" --adapter caddyfile 2>&1) || ok=0
   fi
   if [ "$ok" = 0 ]; then
     cp -p "$backup" "$file"
-    echo "Caddy did not accept the new site; its Caddyfile is back as it was. Stop here and tell Claude."
+    echo "$out" | tail -n 20
+    echo
+    echo "Caddy did not accept the new site (reason above); its Caddyfile is back as it was. Send this to Claude."
     exit 1
   fi
   echo "Added https://$domain to that Caddy (copy of the old file: $backup). Its other sites are unchanged."
