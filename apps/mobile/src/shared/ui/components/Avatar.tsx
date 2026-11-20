@@ -18,18 +18,19 @@ export function Avatar({ uri, fallback, size = 48, accessibilityLabel }: AvatarP
     return (
       <Image
         source={{ uri }}
-        style={[shape, { backgroundColor: colors.surfaceMuted }]}
+        style={[shape, { backgroundColor: colors.primarySoft }]}
         accessibilityLabel={accessibilityLabel}
       />
     );
   }
   return (
     <View
-      style={[styles.center, shape, { backgroundColor: colors.surfaceMuted }]}
+      // Pale brand green, as in the design: grey-beige circles read as «dirty» (owner, 20.11).
+      style={[styles.center, shape, { backgroundColor: colors.primarySoft }]}
       accessible={accessibilityLabel !== undefined}
       accessibilityLabel={accessibilityLabel}
     >
-      <Icon name={fallback} size={Math.round(size * 0.55)} color="textMuted" />
+      <Icon name={fallback} size={Math.round(size * 0.5)} color="accent" />
     </View>
   );
 }

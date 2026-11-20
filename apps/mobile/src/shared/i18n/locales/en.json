@@ -42,10 +42,15 @@
     "home": {
       "upcoming": "Coming up",
       "status": "Status",
-      "later": "Coming later",
       "add": "Add a pet",
       "loadError": "Could not load your pets. Check your connection and try again",
-      "invite": "Invite to the family"
+      "invite": "Invite to the family",
+      "count_one": "{{count}} pet",
+      "count_other": "{{count}} pets",
+      "menuTitle": "Add",
+      "menuA11y": "Add a pet or invite to the family",
+      "upcomingEmptyTitle": "Vaccinations, treatments and visits will show up here",
+      "upcomingEmptyText": "We will remind you in advance so nothing is overdue"
     },
     "empty": {
       "title": "Add your pet",

@@ -71,7 +71,10 @@ export default function TabsLayout() {
         name="index"
         options={{ title: t('tabs.map'), headerShown: false, tabBarIcon: tabIcon('map') }}
       />
-      <Tabs.Screen name="pets" options={{ title: t('tabs.pets'), tabBarIcon: tabIcon('pet') }} />
+      <Tabs.Screen
+        name="pets"
+        options={{ title: t('tabs.pets'), headerShown: false, tabBarIcon: tabIcon('pet') }}
+      />
       <Tabs.Screen
         name="events"
         options={{ title: t('tabs.events'), tabBarIcon: tabIcon('events') }}
