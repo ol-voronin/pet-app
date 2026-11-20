@@ -39,7 +39,7 @@
 | Точки карты: таблица `places` (PostGIS), импорт из OpenStreetMap (`pnpm -F api osm:import`), еженедельный workflow `OSM import` | `apps/api/src/modules/places/osm`, `packages/db/src/schema/places.ts` | #40 |
 | Админка точек: Directus в `docker-compose` (выключен, пока владелец не включит), роль БД только на `places`, скрипт настройки формы, видов и роли «Модератор» | `deploy/directus`, `deploy/docker-compose.yml` | #48 |
 | API карты: точки по области, список по расстоянию, карточка, поиск по названию с опечатками и неверной раскладкой, поиск по адресу через Photon | `apps/api/src/modules/places`, `packages/shared/src/places` | #53 |
-| Таб «Карта» в приложении: поиск (места, категории, адреса, недавние), фильтры, список по расстоянию, карточка со звонком и маршрутом. Нативной карты пока нет — список работает в Expo Go | `apps/mobile/src/features/places` | #PRNUM |
+| Таб «Карта» в приложении: поиск (места, категории, адреса, недавние), фильтры, список по расстоянию, карточка со звонком и маршрутом. Нативной карты пока нет — список работает в Expo Go | `apps/mobile/src/features/places` | #54 |
 | Сервер: Docker-образ API, `docker-compose` (API + Caddy + Redis), деплой из `main` по SSH; Sentry в api и mobile (выключен без DSN) | `apps/api/Dockerfile`, `deploy/`, `.github/workflows/deploy.yml`, ADR-0009 | #38 |
 | Хранилище файлов: политика (типы, 20 МБ), ключи объектов, подписанные ссылки S3, конфиг `S3_*`. Роутов пока нет — появятся с CRUD питомцев | `apps/api/src/modules/storage`, `packages/shared/src/files` | #20 |
 | Питомцы API: `/pets` CRUD, фото в два шага (подписанная ссылка → подтверждение), роли owner / editor / viewer, мягкое удаление | `apps/api/src/modules/pets`, `packages/shared/src/pets` | #21 |
