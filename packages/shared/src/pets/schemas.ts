@@ -29,7 +29,12 @@ const petFields = {
   species: petSpeciesSchema,
   breed: text(80).nullable(),
   sex: petSexSchema.nullable(),
-  birthDate: birthDateSchema.nullable(),
+  /**
+   * Any real date: what is stored must always read back. The input rule (today, 40 years) is in the
+   * request bodies only — a dog turns 40 years and a day, and yesterday's valid date must not break
+   * the list (QA #65).
+   */
+  birthDate: z.iso.date().nullable(),
   color: text(60).nullable(),
   sterilized: z.boolean().nullable(),
   chipNumber: text(32).nullable(),
@@ -62,7 +67,7 @@ export const createPetBodySchema = z
     species: petFields.species,
     breed: petFields.breed.optional(),
     sex: petFields.sex.optional(),
-    birthDate: petFields.birthDate.optional(),
+    birthDate: birthDateSchema.nullable().optional(),
     color: petFields.color.optional(),
     sterilized: petFields.sterilized.optional(),
     chipNumber: petFields.chipNumber.optional(),
