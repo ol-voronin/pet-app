@@ -50,7 +50,8 @@ echo "OK"
 
 say "5/6 Settings in $DIR/.env"
 # The address the server goes out from (Hetzner puts the public IP on the main interface); no outside service asked.
-IP=$(ip -4 route get 1.1.1.1 | awk '{for (i = 1; i < NF; i++) if ($i == "src") print $(i + 1)}')
+IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "src") print $(i + 1)}' || true)
+[ -n "$IP" ] || IP=$(hostname -I | awk '{print $1}')
 if [ -f "$DIR/.env" ]; then
   echo "$DIR/.env exists — kept as is."
 else
