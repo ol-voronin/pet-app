@@ -227,7 +227,6 @@
     "searchPlaceholder": "Name or address",
     "searchLabel": "Search places",
     "clearSearch": "Clear search",
-    "listNote": "The map arrives in the next version of the app. For now, here is a list of places nearby.",
     "category": {
       "clinic": "Vet clinic",
       "pharmacy": "Vet pharmacy",
@@ -256,32 +255,21 @@
     },
     "filter": {
       "open247": "Open 24/7",
-      "radius": "Radius",
-      "radiusKm": "{{km}} km",
       "categories": "Categories"
     },
     "near": {
-      "default": "Kharkiv centre",
-      "me": "Near you",
-      "address": "Near the address: {{address}}",
       "locate": "Show places near me",
       "locating": "Finding your location…",
       "denied": "No access to location. Allow it in the phone settings or search by address.",
-      "unavailable": "Could not find your location. Try again or search by address.",
-      "reset": "Reset"
+      "unavailable": "Could not find your location. Try again or search by address."
     },
     "distance": {
-      "m": "{{value}} m",
-      "km": "{{value}} km"
+      "m": "{{value}} m",
+      "km": "{{value}} km"
     },
     "list": {
-      "empty": "Nothing found nearby",
-      "widen": "Widen the radius to {{km}} km",
-      "widest": "Try other categories or search by name",
       "error": "Could not load places",
-      "offline": "No network. Map places are available online only.",
-      "count_one": "{{count}} place",
-      "count_other": "{{count}} places"
+      "offline": "No network. Map places are available online only."
     },
     "suggest": {
       "categories": "Categories",
@@ -298,18 +286,16 @@
       "call": "Call",
       "route": "Directions",
       "website": "Website",
-      "hours": "Opening hours",
       "open247": "Open around the clock",
       "emergency": "Emergency care",
       "fenced": "Fenced",
       "noName": "No name",
-      "verified": "Verified {{date}} · data © OpenStreetMap",
-      "notVerified": "Data © OpenStreetMap, not verified by hand yet",
-      "noContacts": "No phone number listed",
+      "notVerified": "Not verified by hand yet",
       "error": "Could not load the card",
-      "cannotOpen": "Could not open an app for this action"
+      "cannotOpen": "Could not open an app for this action",
+      "verifiedShort": "verified {{date}}"
     },
-    "attribution": "Data: © OpenStreetMap",
+    "attribution": "Map: OpenFreeMap © OpenMapTiles · data © OpenStreetMap",
     "new": {
       "title": "New marker",
       "open": "Add your own marker",
@@ -321,10 +307,6 @@
       "visibilityPublic": "Everyone",
       "privateHint": "You and everyone you share pets with see the marker at once.",
       "publicHint": "Everyone will see the marker after a moderator checks it. Until then only you and your family see it.",
-      "where": "Where",
-      "whereMe": "Where you are now",
-      "whereAddress": "At the address: {{address}}",
-      "whereUnknown": "First show where it is: find your location or search for an address.",
       "save": "Save marker",
       "errors": {
         "name": "The name must be 2 to 80 characters",
@@ -332,7 +314,8 @@
         "network": "No network. The marker was not saved — try again.",
         "tooMany": "You already have too many markers. Remove the ones you do not need.",
         "unknown": "Could not save the marker. Try again."
-      }
+      },
+      "moveHint": "Move the map to put the pin in the right spot"
     },
     "own": {
       "badge": "Your marker",
@@ -343,6 +326,19 @@
       "delete": "Delete marker",
       "deleteConfirm": "Yes, delete",
       "deleteError": "Could not delete the marker. Try again."
+    },
+    "map": {
+      "failed": "The map did not load. Check the network — the list of places below still works."
+    },
+    "sheet": {
+      "count_one": "{{count}} nearby",
+      "count_other": "{{count}} nearby",
+      "loading": "Looking around…",
+      "byDistance": "by distance",
+      "empty": "Nothing found in this part of the map. Zoom out or change the filters.",
+      "longPressHint": "Press and hold on the map to put a marker right there.",
+      "expand": "Expand the list",
+      "collapse": "Collapse the list"
     }
   }
 }

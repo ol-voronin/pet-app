@@ -12,7 +12,6 @@ import {
   parseRecentSearches,
   routeUrl,
   telUrl,
-  widerRadius,
 } from './logic';
 
 describe('formatDistance', () => {
@@ -83,18 +82,12 @@ describe('recent searches', () => {
   });
 });
 
-describe('search thresholds and radius', () => {
+describe('search thresholds', () => {
   it('asks for names from two letters and addresses from three', () => {
     expect(canSearchPlaces(' в ')).toBe(false);
     expect(canSearchPlaces('ве')).toBe(true);
     expect(canSearchAddress('ве')).toBe(false);
     expect(canSearchAddress('сум')).toBe(true);
-  });
-
-  it('widens the radius step by step', () => {
-    expect(widerRadius(2)).toBe(5);
-    expect(widerRadius(10)).toBe(25);
-    expect(widerRadius(25)).toBeNull();
   });
 });
 

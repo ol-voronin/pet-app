@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet } from 'react-native';
+import { floatingShadow } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
@@ -8,10 +9,12 @@ export interface ChipProps {
   selected: boolean;
   onPress: () => void;
   icon?: IconName;
+  /** Over the map: no outline, a soft shadow instead (shadows only for what floats over the map). */
+  floating?: boolean;
 }
 
 /** A filter pill that can be switched on and off; several can be on at once. */
-export function Chip({ label, selected, onPress, icon }: ChipProps) {
+export function Chip({ label, selected, onPress, icon, floating = false }: ChipProps) {
   const { colors, radius, spacing, sizes } = useTheme();
   return (
     <Pressable
@@ -29,8 +32,9 @@ export function Chip({ label, selected, onPress, icon }: ChipProps) {
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.xs,
           backgroundColor: selected ? colors.inverse : colors.surface,
-          borderColor: selected ? colors.inverse : colors.border,
+          borderColor: selected ? colors.inverse : floating ? colors.surface : colors.border,
         },
+        floating ? styles.floating : null,
       ]}
     >
       {icon ? <Icon name={icon} size={18} color={selected ? 'textOnInverse' : 'text'} /> : null}
@@ -43,4 +47,5 @@ export function Chip({ label, selected, onPress, icon }: ChipProps) {
 
 const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
+  floating: floatingShadow,
 });

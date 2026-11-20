@@ -6,11 +6,23 @@ import { usePendingInvite } from '@/features/family/hooks';
 import { useAddPetGate } from '@/features/onboarding/hooks';
 import { Icon, useTheme, type IconName } from '@/shared/ui';
 
-/** One-color tab icon: ink when the tab is active, muted otherwise — the same tokens as the label. */
+/**
+ * One-color tab icon; the active one sits on a brand pill (design canvas, every «UI 3» screen).
+ * Ink on the pill, muted otherwise — the same tokens as the label.
+ */
 const tabIcon = (name: IconName) =>
-  function TabIcon({ focused, size }: { focused: boolean; size: number }) {
-    return <Icon name={name} size={size} color={focused ? 'text' : 'textMuted'} />;
+  function TabIcon({ focused }: { focused: boolean }) {
+    return <TabPill focused={focused} name={name} />;
   };
+
+function TabPill({ focused, name }: { focused: boolean; name: IconName }) {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.pill, { backgroundColor: focused ? colors.primary : 'transparent' }]}>
+      <Icon name={name} size={22} color={focused ? 'text' : 'textMuted'} />
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   const { t } = useTranslation();
@@ -47,7 +59,11 @@ export default function TabsLayout() {
         headerTintColor: colors.text,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t('tabs.map'), tabBarIcon: tabIcon('map') }} />
+      {/* The map draws its own search bar under the status bar: no header. */}
+      <Tabs.Screen
+        name="index"
+        options={{ title: t('tabs.map'), headerShown: false, tabBarIcon: tabIcon('map') }}
+      />
       <Tabs.Screen name="pets" options={{ title: t('tabs.pets'), tabBarIcon: tabIcon('pet') }} />
       <Tabs.Screen
         name="events"
@@ -63,4 +79,5 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  pill: { width: 56, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
 });

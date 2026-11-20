@@ -10,4 +10,12 @@ export { Sheet, type SheetProps } from './components/Sheet';
 export { Text, type TextProps } from './components/Text';
 export { PlaceholderScreen } from './PlaceholderScreen';
 export { useTheme, type Theme } from './theme/useTheme';
-export { radius, sizes, spacing, typography, type ColorTokens } from './theme/tokens';
+export {
+  floatingShadow,
+  mapColors,
+  radius,
+  sizes,
+  spacing,
+  typography,
+  type ColorTokens,
+} from './theme/tokens';

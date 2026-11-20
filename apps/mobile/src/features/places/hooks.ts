@@ -1,11 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import type { PlaceFilters, Point } from './api';
+import type { Box, PlaceFilters, Point } from './api';
 import { placesApi } from './client';
 import {
   createPlaceMutation,
   deletePlaceMutation,
   geocodeQuery,
+  inBoxPlacesQuery,
   nearbyPlacesQuery,
   placeQuery,
   searchPlacesQuery,
@@ -13,8 +14,19 @@ import {
 
 // Thin wrappers: what each hook fetches is defined (and tested) in queries.ts.
 
+/** Pins of the visible map; the previous pins stay on screen while the next ones load. */
+export const useInBoxPlaces = (box: Box | null, filters: PlaceFilters) =>
+  useQuery({
+    ...inBoxPlacesQuery(placesApi, box ?? { west: 0, south: 0, east: 0, north: 0 }, filters),
+    enabled: box !== null,
+    placeholderData: keepPreviousData,
+  });
+
 export const useNearbyPlaces = (center: Point, radiusM: number, filters: PlaceFilters) =>
-  useQuery(nearbyPlacesQuery(placesApi, center, radiusM, filters));
+  useQuery({
+    ...nearbyPlacesQuery(placesApi, center, radiusM, filters),
+    placeholderData: keepPreviousData,
+  });
 
 export const useSearchPlaces = (query: string, near: Point, filters: PlaceFilters) =>
   useQuery(searchPlacesQuery(placesApi, query, near, filters));
