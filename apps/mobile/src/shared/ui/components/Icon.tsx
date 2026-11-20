@@ -15,6 +15,8 @@ const glyphs = {
   profile: 'account-circle-outline',
   add: 'plus',
   chevron: 'chevron-right',
+  back: 'chevron-left',
+  edit: 'pencil-outline',
   checked: 'checkbox-marked-circle',
   unchecked: 'checkbox-blank-circle-outline',
   // Map.
