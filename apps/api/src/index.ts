@@ -6,6 +6,8 @@ import { loadConfig } from './config.js';
 import { DrizzleAuthRepo } from './modules/auth/drizzle-repo.js';
 import { LogOtpSender } from './modules/auth/otp-sender.js';
 import { AuthService } from './modules/auth/service.js';
+import { DrizzleDocumentsRepo } from './modules/documents/drizzle-repo.js';
+import { DocumentsService } from './modules/documents/service.js';
 import { DrizzleFamilyRepo } from './modules/family/drizzle-repo.js';
 import { FamilyService } from './modules/family/service.js';
 import { DrizzlePetsRepo } from './modules/pets/drizzle-repo.js';
@@ -31,7 +33,9 @@ const auth = new AuthService({
   secret: config.JWT_SECRET,
   ...(config.OTP_FIXED_CODE ? { fixedOtp: config.OTP_FIXED_CODE } : {}),
 });
-const pets = new PetsService({ repo: new DrizzlePetsRepo(db), storage: createStorage(config) });
+const storage = createStorage(config);
+const pets = new PetsService({ repo: new DrizzlePetsRepo(db), storage });
+const documents = new DocumentsService({ repo: new DrizzleDocumentsRepo(db), storage });
 const mapPlaces = new PlacesService({
   repo: new DrizzlePlacesRepo(db),
   geocoder: new PhotonGeocoder(config.GEOCODER_URL ? { url: config.GEOCODER_URL } : {}),
@@ -43,6 +47,7 @@ await configureApp(app, {
   version: config.APP_VERSION,
   auth,
   pets,
+  documents,
   family,
   places: mapPlaces,
   // Swagger UI only locally: its dependency chain does not load on Vercel's Node runtime.

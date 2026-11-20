@@ -36,6 +36,16 @@ export const uploadTargetSchema = z
 
 export type ApiUploadTarget = z.infer<typeof uploadTargetSchema>;
 
+/** Short-lived signed URL for reading a private file. Never store it. */
+export const downloadTargetSchema = z
+  .object({
+    url: z.url(),
+    expiresAt: z.iso.datetime(),
+  })
+  .meta({ id: 'DownloadTarget' });
+
+export type ApiDownloadTarget = z.infer<typeof downloadTargetSchema>;
+
 /** What a client declares before it gets an upload URL. Checked again after the upload. */
 export const fileUploadSchema = z.object({
   contentType: fileContentTypeSchema,
