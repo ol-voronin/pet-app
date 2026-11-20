@@ -109,6 +109,7 @@ export function SearchSuggestions(props: SearchSuggestionsProps) {
           {foundPlaces.map((place) => (
             <PlaceRow
               key={place.id}
+              inset="card"
               place={place}
               onPress={() => {
                 props.onPlace(place);
@@ -158,7 +159,7 @@ function Section({
   return (
     <View style={{ gap: spacing.sm }}>
       <View style={styles.sectionHead}>
-        <Text variant="heading" accessibilityRole="header" style={styles.body}>
+        <Text variant="section" accessibilityRole="header" style={styles.body}>
           {title}
         </Text>
         {action ? <Button variant="ghost" title={action.title} onPress={action.onPress} /> : null}
@@ -190,7 +191,7 @@ function SuggestionRow({
         {
           minHeight: sizes.listRow,
           gap: spacing.md,
-          paddingHorizontal: spacing.md,
+          paddingHorizontal: spacing.md + spacing.xxs,
           paddingVertical: spacing.sm,
           backgroundColor: pressed ? colors.surfaceMuted : colors.surface,
           borderBottomWidth: StyleSheet.hairlineWidth,
@@ -200,7 +201,7 @@ function SuggestionRow({
     >
       <IconPlate name={icon} />
       <View style={styles.body}>
-        <Text variant="label" numberOfLines={2}>
+        <Text variant="rowTitle" numberOfLines={2}>
           {title}
         </Text>
         {subtitle ? (

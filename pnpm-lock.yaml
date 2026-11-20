@@ -254,6 +254,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@expo-google-fonts/geologica':
+        specifier: 0.4.2
+        version: 0.4.2
       '@expo/vector-icons':
         specifier: ^15.1.1
         version: 15.1.1(expo-font@58.0.12(expo@58.0.26)(react-native@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2))(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2))(react@19.3.0)
@@ -281,6 +284,9 @@ importers:
       expo-font:
         specifier: ~58.0.12
         version: 58.0.12(expo@58.0.26)(react-native@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2))(react@19.3.0)
+      expo-haptics:
+        specifier: ~58.0.8
+        version: 58.0.8(expo@58.0.26)
       expo-image-picker:
         specifier: ~58.0.10
         version: 58.0.10(expo@58.0.26)
@@ -1355,6 +1361,9 @@ packages:
   '@eslint/plugin-kit@0.7.3':
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@expo-google-fonts/geologica@0.4.2':
+    resolution: {integrity: sha512-apUsi0qE2iVk/IAlsnCwTegnMnAwh12xR6MLbDIjvCJYms8nYdI8szgfazEaACZRCwrXyWg6QYtDjq1+SpaRGg==}
 
   '@expo/cli@58.1.21':
     resolution: {integrity: sha512-E+27FQ1Y26fVb0p1wVHBFkbe5oQubUXLwF/au5Vy8OCqDWrmbekBQamRI4mBhY15FhZQxAkyK0e6hXcEFKVBOw==}
@@ -3317,6 +3326,11 @@ packages:
       expo: '*'
       react: '*'
       react-native: '*'
+
+  expo-haptics@58.0.8:
+    resolution: {integrity: sha512-hxW9LoJQhAJ4hRlGx0DZ10ncs2NFqC/0nfKSnGy1PcpH6e8dJ4/oJO9eOcAG/vFg8k5oonbZkWL7RK9G3729Tg==}
+    peerDependencies:
+      expo: '*'
 
   expo-image-loader@58.0.3:
     resolution: {integrity: sha512-zlHudxC8OObyqCHmvdxJqURI7886KJ0cUJyn7R/a8FOD9fP837xKDN+u4SIt7XsSSVPNXzMd4Y7mN0pmup8NGA==}
@@ -6050,6 +6064,8 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
+  '@expo-google-fonts/geologica@0.4.2': {}
+
   '@expo/cli@58.1.21(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.17)(expo-constants@58.0.16)(expo-font@58.0.12(expo@58.0.26)(react-native@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2))(react@19.3.0))(expo-router@58.0.32)(expo@58.0.26)(react-dom@19.3.1(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2))(react@19.3.0)(supports-color@10.2.2)(typescript@6.0.3)':
     dependencies:
       2g: 1.0.1(typescript@6.0.3)
@@ -8096,6 +8112,10 @@ snapshots:
       expo: 58.0.26(03fd41a86bfd6cf40a51cba9c9eaa09b)
       react: 19.3.0
       react-native: 0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.3.0)(react@19.3.0)(supports-color@10.2.2)
+
+  expo-haptics@58.0.8(expo@58.0.26):
+    dependencies:
+      expo: 58.0.26(03fd41a86bfd6cf40a51cba9c9eaa09b)
 
   expo-image-loader@58.0.3(expo@58.0.26):
     dependencies:

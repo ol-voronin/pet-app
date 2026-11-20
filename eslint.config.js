@@ -42,5 +42,11 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // typescript-eslint 8.73: this rule overflows the stack on React Native's recursive Animated types
+    // (RangeError, not a finding). All Animated code lives in this folder, so the rule is off only here.
+    files: ['apps/mobile/src/shared/ui/motion/**/*.{ts,tsx}'],
+    rules: { '@typescript-eslint/no-unsafe-class-instance-assignment': 'off' },
+  },
   prettier,
 );

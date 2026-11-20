@@ -23,14 +23,18 @@ export function PlaceRow({
   place,
   onPress,
   last = false,
+  inset = 'panel',
 }: {
   place: PlaceListItem;
   onPress: () => void;
   last?: boolean;
+  /** 20 when rows span a panel, 14 inside a card. */
+  inset?: 'panel' | 'card';
 }) {
   const { t } = useTranslation();
-  const { colors, spacing, sizes } = useTheme();
+  const { colors, spacing, sizes, gutter, radius } = useTheme();
   const distanceLabel = useDistanceLabel();
+  const side = inset === 'panel' ? gutter : spacing.md + spacing.xxs;
   const category = t(categoryKey[place.category]);
   const title = place.name ?? category;
   const distance = distanceLabel(place.distanceM);
@@ -50,47 +54,58 @@ export function PlaceRow({
       style={({ pressed }) => [
         styles.row,
         {
-          minHeight: sizes.listRow,
           gap: spacing.md,
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
+          paddingLeft: side,
           backgroundColor: pressed ? colors.surfaceMuted : colors.surface,
-          borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
-          borderBottomColor: colors.border,
         },
       ]}
     >
       <IconPlate name={categoryIcon[place.category]} />
-      <View style={styles.body}>
-        <Text variant="label" numberOfLines={2}>
-          {title}
-        </Text>
-        {details ? (
-          <Text variant="caption" color="textMuted" numberOfLines={2}>
-            {details}
+      {/* The divider starts at the text, as in iOS lists: the icons stay one clean column. */}
+      <View
+        style={[
+          styles.content,
+          {
+            minHeight: sizes.listRow,
+            gap: spacing.sm,
+            paddingRight: side,
+            paddingVertical: spacing.md,
+            borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
+        <View style={styles.body}>
+          <Text variant="rowTitle" numberOfLines={2}>
+            {title}
           </Text>
+          {details ? (
+            <Text variant="caption" color="textMuted" numberOfLines={2}>
+              {details}
+            </Text>
+          ) : null}
+        </View>
+        {badge ? (
+          <View
+            style={{
+              paddingHorizontal: spacing.sm,
+              paddingVertical: spacing.xxs,
+              borderRadius: radius.pill,
+              backgroundColor: colors.primarySoft,
+            }}
+          >
+            <Text variant="captionStrong" color="accent">
+              {badge}
+            </Text>
+          </View>
         ) : null}
       </View>
-      {badge ? (
-        <View
-          style={{
-            paddingHorizontal: spacing.sm,
-            paddingVertical: spacing.xxs,
-            borderRadius: 12,
-            backgroundColor: colors.primarySoft,
-          }}
-        >
-          <Text variant="caption" color="accent" style={styles.badge}>
-            {badge}
-          </Text>
-        </View>
-      ) : null}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
+  content: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   body: { flex: 1 },
-  badge: { fontWeight: '700' },
 });

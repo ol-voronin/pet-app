@@ -1,24 +1,36 @@
-import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps } from 'react-native';
-import type { ColorTokens } from '../theme/tokens';
+import { ActivityIndicator, StyleSheet, View, type PressableProps } from 'react-native';
+import { PressableScale } from '../motion/PressableScale';
+import type { ColorTokens, TextVariant } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { Text } from './Text';
 
 /**
  * primary — brand pill with a 4px bottom edge (one per screen);
- * dark — ink pill; secondary — flat muted pill; ghost — text only; danger — destructive.
+ * dark — ink pill with an edge; outline — ink outline; secondary — flat muted pill; ghost — text only;
+ * danger — destructive text.
  */
-export type ButtonVariant = 'primary' | 'dark' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'dark' | 'outline' | 'secondary' | 'ghost' | 'danger';
 
 export interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> {
   title: string;
   variant?: ButtonVariant;
+  /** `small` — 44pt pill inside rows and cards (design: «Записатися», «Зроблено»). */
+  size?: 'regular' | 'small';
   loading?: boolean;
   fullWidth?: boolean;
 }
 
-const fills: Record<ButtonVariant, { bg: keyof ColorTokens | null; fg: keyof ColorTokens }> = {
-  primary: { bg: 'primary', fg: 'textOnPrimary' },
-  dark: { bg: 'inverse', fg: 'textOnInverse' },
+interface Look {
+  bg: keyof ColorTokens | null;
+  fg: keyof ColorTokens;
+  edge?: keyof ColorTokens;
+  outline?: keyof ColorTokens;
+}
+
+const looks: Record<ButtonVariant, Look> = {
+  primary: { bg: 'primary', fg: 'textOnPrimary', edge: 'primaryEdge' },
+  dark: { bg: 'inverse', fg: 'textOnInverse', edge: 'inverseEdge' },
+  outline: { bg: null, fg: 'text', outline: 'text' },
   secondary: { bg: 'surfaceMuted', fg: 'text' },
   ghost: { bg: null, fg: 'accent' },
   danger: { bg: null, fg: 'danger' },
@@ -27,6 +39,7 @@ const fills: Record<ButtonVariant, { bg: keyof ColorTokens | null; fg: keyof Col
 export function Button({
   title,
   variant = 'primary',
+  size = 'regular',
   loading = false,
   fullWidth = false,
   disabled,
@@ -34,17 +47,21 @@ export function Button({
 }: ButtonProps) {
   const { colors, radius, spacing, sizes } = useTheme();
   const isDisabled = disabled === true || loading;
-  const { bg, fg } = fills[variant];
-  const hasEdge = variant === 'primary';
-  const height = variant === 'primary' ? sizes.buttonPrimary : sizes.hitTarget;
+  const { bg, fg, edge, outline } = looks[variant];
+  const small = size === 'small';
+  const height = small ? 44 : variant === 'primary' ? sizes.buttonPrimary : sizes.hitTarget;
+  const edgeWidth = small ? sizes.pillEdge : sizes.buttonPrimaryEdge;
+  const textVariant: TextVariant = small ? 'labelSmall' : 'label';
+  const filled = bg !== null;
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}
+      {...(filled ? { haptic: 'impact' as const } : {})}
       {...rest}
-      style={[fullWidth && styles.fullWidth, { opacity: isDisabled ? 0.5 : 1 }]}
+      containerStyle={[fullWidth && styles.fullWidth, { opacity: isDisabled ? 0.5 : 1 }]}
     >
       {({ pressed }) => (
         <View
@@ -53,33 +70,32 @@ export function Button({
             {
               minHeight: height,
               borderRadius: radius.pill,
-              paddingHorizontal: spacing.xl,
+              paddingHorizontal: small ? spacing.lg : spacing.xl,
               backgroundColor: bg ? colors[bg] : pressed ? colors.surfaceMuted : 'transparent',
             },
-            hasEdge && {
-              borderBottomWidth: pressed ? 0 : sizes.buttonPrimaryEdge,
-              borderBottomColor: colors.primaryEdge,
+            edge && {
               // Press = the button sinks onto its edge.
-              marginTop: pressed ? sizes.buttonPrimaryEdge : 0,
+              borderBottomWidth: pressed ? 0 : edgeWidth,
+              borderBottomColor: colors[edge],
+              marginTop: pressed ? edgeWidth : 0,
             },
-            !hasEdge && bg && pressed && styles.pressedFlat,
+            outline && { borderWidth: 1.5, borderColor: colors[outline] },
           ]}
         >
           {loading ? (
             <ActivityIndicator color={colors[fg]} />
           ) : (
-            <Text variant="label" color={fg}>
+            <Text variant={textVariant} color={fg} numberOfLines={1}>
               {title}
             </Text>
           )}
         </View>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
   base: { alignItems: 'center', justifyContent: 'center' },
   fullWidth: { alignSelf: 'stretch' },
-  pressedFlat: { opacity: 0.85 },
 });
