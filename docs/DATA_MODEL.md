@@ -127,10 +127,14 @@ status (`scheduled`|`sent`|`done`|`snoozed`|`cancelled`), created_by, created_at
 ## Карта
 
 ### places
-id, category (`clinic`|`pharmacy`|`dog_park`|`cafe`|`groomer`|`shop`|`other`),
-name, geom (geography Point), address, city, phone, website, hours (jsonb),
-attributes (jsonb: off_leash, fenced, 24_7…), source (`osm`|`manual`|`claimed`|`user`),
-osm_id, verified_at,
+Реализовано в `packages/db/src/schema/places.ts` (миграция `0005_places`).
+
+id, category (`clinic`|`pharmacy`|`dog_park`|`shop`|`groomer`|`trainer`|`cafe`|`other`),
+name (может быть пустым — у многих площадок нет названия), names (jsonb: `default`, `uk`, `ru`, `en` — для поиска),
+lat, lon, geom (geography Point — вычисляется из lat/lon), address, city, phones (text[], E.164), website,
+opening_hours (строка в формате OSM), attributes (jsonb: open247, emergency, fenced),
+source (`osm`|`manual`|`user`; `claimed` появится с B2B), osm_type + osm_id (уникальная пара), osm_tags (jsonb,
+теги на момент последнего импорта), osm_seen_at, osm_missing_since, **verified_at**, verified_by,
 **visibility** (`public`|`private`), **created_by** (nullable — для `source=user`),
 **moderation_status** (`approved`|`pending`|`rejected`), claimed_by_org_id (V2)
 
@@ -138,6 +142,9 @@ osm_id, verified_at,
   его питомцев сразу, без модерации.
 - Публичная метка пользователя показывается всем только при `moderation_status=approved`.
 - Точки из OSM и ручные — `public` + `approved`.
+- **Импорт OSM** (`pnpm -F api osm:import`, раз в неделю): непроверенную точку обновляет; проверенную человеком
+  (`verified_at` заполнен) не меняет, только кладёт рядом свежие `osm_tags`; пропавшую из OSM помечает
+  `osm_missing_since` и не удаляет. Google Places источником быть не может.
 
 ### organizations (V2)
 id, name, kind (`clinic`|`pharmacy`|`organizer`), created_at — для `places.claimed_by_org_id` и B2B-кабинета.
