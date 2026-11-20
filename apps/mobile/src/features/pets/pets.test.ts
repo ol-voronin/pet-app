@@ -168,6 +168,11 @@ describe('pet form validation', () => {
       ok: false,
       errors: { birthDate: 'pets.form.errors.birthDateFuture' },
     });
+    // A typo in the year (QA #49).
+    expect(validatePetForm({ ...filled, birthDate: '01.05.1020' })).toMatchObject({
+      ok: false,
+      errors: { birthDate: 'pets.form.errors.birthDateTooOld' },
+    });
   });
 
   it('limits the length of text fields like the API does', () => {
