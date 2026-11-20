@@ -4,8 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { Button, Sheet, Text, useTheme } from '@/shared/ui';
 
-/** Empty state of the Pets tab: two equal ways to add a pet, and a one-tap skip (PRD, onboarding). */
-export function AddPetEmpty() {
+/**
+ * Two equal ways to add a pet and a one-tap skip (PRD, onboarding). Used as the first screen after
+ * sign-in and as the empty state of the Pets tab; `onLater` says where the skip leads.
+ */
+export function AddPetEmpty({ onLater }: { onLater: () => void }) {
   const { t } = useTranslation();
   const { spacing } = useTheme();
   const [scanInfo, setScanInfo] = useState(false);
@@ -33,13 +36,7 @@ export function AddPetEmpty() {
         />
         <Button variant="dark" title={t('pets.empty.manual')} fullWidth onPress={addByHand} />
       </View>
-      <Button
-        variant="ghost"
-        title={t('pets.empty.later')}
-        onPress={() => {
-          router.navigate('/');
-        }}
-      />
+      <Button variant="ghost" title={t('pets.empty.later')} onPress={onLater} />
       <Sheet
         visible={scanInfo}
         onClose={() => {

@@ -38,6 +38,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="welcome" />
           <Stack.Screen name="pets/new" options={petScreen} />
           <Stack.Screen name="pets/[petId]/index" options={petScreen} />
           <Stack.Screen name="pets/[petId]/edit" options={petScreen} />
