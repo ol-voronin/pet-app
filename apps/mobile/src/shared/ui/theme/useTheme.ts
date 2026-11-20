@@ -1,6 +1,16 @@
-import { lightColors, radius, sizes, spacing, typography } from './tokens';
+import { fonts, gutter, lightColors, motion, radius, sizes, spacing, typography } from './tokens';
 
-const theme = { colors: lightColors, spacing, radius, typography, sizes, scheme: 'light' } as const;
+const theme = {
+  colors: lightColors,
+  spacing,
+  gutter,
+  radius,
+  typography,
+  fonts,
+  sizes,
+  motion,
+  scheme: 'light',
+} as const;
 
 /** Single light theme for MVP. Kept as a hook so a dark theme can be added without touching callers. */
 export function useTheme() {

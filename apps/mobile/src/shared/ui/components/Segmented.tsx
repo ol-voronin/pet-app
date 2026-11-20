@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { PressableScale } from '../motion/PressableScale';
 import { useTheme } from '../theme/useTheme';
 import { Text } from './Text';
 
@@ -32,8 +33,9 @@ export function Segmented<T extends string>({
         {options.map((option) => {
           const selected = option.value === value;
           return (
-            <Pressable
+            <PressableScale
               key={option.value}
+              haptic="select"
               disabled={disabled}
               onPress={() => {
                 onChange(option.value);
@@ -54,7 +56,7 @@ export function Segmented<T extends string>({
               <Text variant="label" color={selected ? 'textOnInverse' : 'text'}>
                 {option.label}
               </Text>
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>

@@ -94,9 +94,9 @@ describe('health_record_versions schema', () => {
   });
 });
 
-describe('0007_health_records migration', () => {
+describe('0008_health_records migration', () => {
   const sql = readFileSync(
-    new URL('../../migrations/0007_health_records.sql', import.meta.url),
+    new URL('../../migrations/0008_health_records.sql', import.meta.url),
     'utf8',
   );
 

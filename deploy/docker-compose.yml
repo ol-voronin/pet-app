@@ -1,4 +1,7 @@
 # API server: API + Caddy (HTTPS) + Redis. The database (Neon) and files (Neon Object Storage) stay outside.
+# Our Caddy runs with COMPOSE_PROFILES=caddy in `.env`. On a server whose ports 80/443 already belong to another
+# project's Caddy, it stays off: that Caddy gets a site block for API_DOMAIN pointing at the loopback ports below
+# (deploy/setup-server.sh writes both).
 # Lives on the server in /opt/pet-app next to `.env` (secrets, created by hand, never in the repository).
 # Step-by-step setup: apps/api/README.md.
 name: pet-app
@@ -16,11 +19,12 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    # Not published: only Caddy reaches it.
-    expose:
-      - '3000'
+    # Loopback only: our Caddy reaches it inside the network, a shared Caddy on the host through this port.
+    ports:
+      - '127.0.0.1:${API_HOST_PORT:-3100}:3000'
 
   caddy:
+    profiles: ['caddy']
     image: caddy:2.11-alpine
     restart: unless-stopped
     environment:
@@ -38,7 +42,7 @@ services:
       - api
 
   # Admin panel for map places (manual verification, moderation queue). Off until the owner creates
-  # `directus.env` and adds COMPOSE_PROFILES=admin to `.env` — see apps/api/README.md.
+  # `directus.env` and adds `admin` to COMPOSE_PROFILES in `.env` — see apps/api/README.md.
   directus:
     profiles: ['admin']
     image: directus/directus:12.7.0
@@ -56,8 +60,8 @@ services:
       RATE_LIMITER_ENABLED: 'true'
       RATE_LIMITER_POINTS: '50'
       RATE_LIMITER_DURATION: '1'
-    expose:
-      - '8055'
+    ports:
+      - '127.0.0.1:${DIRECTUS_HOST_PORT:-8055}:8055'
 
   redis:
     image: redis:7.4-alpine

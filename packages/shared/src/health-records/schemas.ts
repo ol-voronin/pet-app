@@ -125,7 +125,9 @@ const editableFields = {
 const dueAfterDate = (value: {
   date?: string | undefined;
   nextDueDate?: string | null | undefined;
-}) => !value.date || !value.nextDueDate || value.nextDueDate >= value.date;
+}) =>
+  // Compare instants, not strings: `…:00Z` and `…:00.500Z` are both valid and sort wrongly as text.
+  !value.date || !value.nextDueDate || Date.parse(value.nextDueDate) >= Date.parse(value.date);
 
 /** A record as the API returns it. */
 export const healthRecordSchema = z

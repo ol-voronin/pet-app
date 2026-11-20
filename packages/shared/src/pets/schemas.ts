@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { kyivToday, yearsBefore } from '../dates.js';
 import { imageContentTypeSchema, MAX_FILE_BYTES, uploadTargetSchema } from '../files/policy.js';
 
 export const petSpeciesSchema = z.enum(['dog', 'cat', 'other']);
@@ -8,19 +9,32 @@ export const petRoleSchema = z.enum(['owner', 'editor', 'viewer']);
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 
-/** Calendar date `YYYY-MM-DD` that really exists and is not in the future. */
-export const birthDateSchema = z.iso.date().refine((value) => {
-  // Compare as UTC dates; one day of slack covers users ahead of UTC (Europe/Kyiv is UTC+2/+3).
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  return value <= tomorrow;
-}, 'birth_date_in_future');
+/** Older than this is a typo in the year (`1020` for `2020`), not a pet. */
+export const MAX_PET_AGE_YEARS = 40;
+
+/**
+ * Calendar date `YYYY-MM-DD` that really exists, is not after today in Kyiv (where dates are shown)
+ * and not more than 40 years ago.
+ */
+export const birthDateSchema = z.iso.date().superRefine((value, ctx) => {
+  const today = kyivToday();
+  if (value > today) ctx.addIssue({ code: 'custom', message: 'birth_date_in_future' });
+  else if (value < yearsBefore(today, MAX_PET_AGE_YEARS)) {
+    ctx.addIssue({ code: 'custom', message: 'birth_date_too_old' });
+  }
+});
 
 const petFields = {
   name: text(60),
   species: petSpeciesSchema,
   breed: text(80).nullable(),
   sex: petSexSchema.nullable(),
-  birthDate: birthDateSchema.nullable(),
+  /**
+   * Any real date: what is stored must always read back. The input rule (today, 40 years) is in the
+   * request bodies only — a dog turns 40 years and a day, and yesterday's valid date must not break
+   * the list (QA #65).
+   */
+  birthDate: z.iso.date().nullable(),
   color: text(60).nullable(),
   sterilized: z.boolean().nullable(),
   chipNumber: text(32).nullable(),
@@ -53,7 +67,7 @@ export const createPetBodySchema = z
     species: petFields.species,
     breed: petFields.breed.optional(),
     sex: petFields.sex.optional(),
-    birthDate: petFields.birthDate.optional(),
+    birthDate: birthDateSchema.nullable().optional(),
     color: petFields.color.optional(),
     sterilized: petFields.sterilized.optional(),
     chipNumber: petFields.chipNumber.optional(),

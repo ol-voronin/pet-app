@@ -44,6 +44,34 @@ APP_ENV=staging OTP_FIXED_CODE=000000 DATABASE_URL=… JWT_SECRET=… node --no-
 Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` branch), `JWT_SECRET`,
 `OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
 
+## Family limit check (live)
+The Free member limit is enforced in the database transaction that adds a member: a per-pet advisory lock, then
+the insert only while every pet has room (`src/modules/family/drizzle-repo.ts`, QA #50). Unit tests use the in-memory
+repository, so the SQL itself is checked by a live script against Neon `dev` (creates and deletes its own rows):
+```bash
+DATABASE_URL=… pnpm -F api check:family-limit
+```
+
+## Map API
+`src/modules/places`: routes behind sign-in. A person gets public, approved, not hidden places and their family's own markers.
+- `GET /places?bbox=west,south,east,north&categories=clinic,pharmacy&open247=true` — pins for the visible map
+  (up to 1000; `truncated` says there were more).
+- `GET /places/nearby?lat=&lon=&radiusM=&limit=` — list by distance.
+- `GET /places/search?q=&lat=&lon=` — by name. Forgives typos (Postgres `pg_trgm`), a Russian spelling stored in
+  OSM and a wrong keyboard layout (`dtnfgntrf` → `ветаптека`); see `search-text.ts`.
+- `GET /places/:placeId` — the card.
+- `POST /places` — the person's own marker (`name`, `category`, `lat`, `lon`, `visibility`). `private` (default) is
+  seen at once by the author and their family — everyone who shares a pet with them. `public` waits for a moderator
+  (`moderation_status = pending`, the "Черга модерації" view in the admin panel); until approved only the family sees it.
+  At most 100 own markers per person. `DELETE /places/:placeId` — the author only; the row is kept (`deleted_at`).
+- Every read is per viewer: public approved places plus own markers of the viewer's family. `mine` marks the latter.
+- `GET /geocode?q=&lat=&lon=` — address search in Ukraine through Photon (ADR-0005), cached for a day, one
+  request at a time. What leaves our server: the typed address and the map centre rounded to about 1 km — no
+  user id and no phone IP. `GEOCODER_URL` points it at another Photon server; when it is down the route answers 503.
+
+Not done yet: "open now" (needs an `opening_hours` parser; two thirds of places have no hours in OSM) and
+search by service (second version, `docs/PRD.md`).
+
 ## Map places (OpenStreetMap import)
 `src/modules/places/osm`: `mapping.ts` turns OSM tags into our categories, `import.ts` holds the rules,
 `src/scripts/import-osm.ts` is the entry. Data source is the Overpass API; Google Places is never used.
@@ -84,6 +112,15 @@ The whole stack: copy `deploy/` to a folder, add `.env` with `API_DOMAIN=localho
 ### Пошагово для владельца: сервер
 Нужно один раз. Команды — на сервере под `root`, если не сказано иначе. Ничего платного: сервер уже есть.
 
+**Быстрый путь — одна команда на сервере** (Docker, пользователь, `.env`, сборка и запуск, подключение к
+веб-серверу и автодеплой: таймер раз в 5 минут забирает `main` и обновляет API, `deploy/update.sh`):
+```bash
+curl -fsSL https://raw.githubusercontent.com/ol-voronin/pet-app/main/deploy/setup-server.sh | sudo bash
+```
+Спросит адрес для API (Enter — бесплатный `<IP>.sslip.io`) и строку подключения к Neon. Секреты GitHub при этом
+не нужны. Журнал обновлений: `journalctl -u pet-app-update`; обновить сейчас: `sudo -u deploy /opt/pet-app/src/deploy/update.sh --force`.
+Ниже — запасной путь руками, с доставкой из GitHub Actions по SSH.
+
 1. **Docker.** Проверить: `docker compose version`. Если команды нет:
    ```bash
    curl -fsSL https://get.docker.com | sh
@@ -92,8 +129,10 @@ The whole stack: copy `deploy/` to a folder, add `.env` with `API_DOMAIN=localho
    ```bash
    ss -ltnp | grep -E ':(80|443) '
    ```
-   Пусто — всё хорошо. Если порты заняты другим веб-сервером, остановись и напиши в чат: Caddy не запустится,
-   нужно будет пустить API через тот веб-сервер.
+   Пусто — всё хорошо: в `.env` будет `COMPOSE_PROFILES=caddy`, и запустится наш Caddy. Если порты держит Caddy
+   другого проекта, наш не нужен: в его Caddyfile добавляется отдельный блок для `API_DOMAIN` с
+   `reverse_proxy 127.0.0.1:<API_HOST_PORT>` (скрипт делает это сам, между метками `# >>> pet-app` и `# <<< pet-app`,
+   с копией файла и откатом, если Caddy не примет). Если порты держит что-то другое — напиши в чат.
 3. **Пользователь для деплоя и папка.** Группа `docker` даёт права, равные `root`, поэтому ключ этого
    пользователя храним только в секретах GitHub.
    ```bash
@@ -164,7 +203,8 @@ The whole stack: copy `deploy/` to a folder, add `.env` with `API_DOMAIN=localho
    ```
    Хост — из строки подключения Neon с выключенным «Connection pooling»: через pooler админка не работает надёжно.
    Затем: `chown deploy:deploy /opt/pet-app/directus.env && chmod 600 /opt/pet-app/directus.env`.
-3. **Включить.** В `/opt/pet-app/.env` добавить строку `COMPOSE_PROFILES=admin`, затем:
+3. **Включить.** В `/opt/pet-app/.env` дописать `admin` в `COMPOSE_PROFILES` (`COMPOSE_PROFILES=caddy,admin`, а если
+   строки нет — `COMPOSE_PROFILES=admin`), затем:
    ```bash
    cd /opt/pet-app && docker compose up -d
    ```

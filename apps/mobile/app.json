@@ -18,18 +18,25 @@
       "expo-status-bar",
       "expo-localization",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Щоб показати ветклініки, аптеки та майданчики поруч із вами."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "owner": "pet-app-team",
     "extra": {
-      "apiUrl": "https://pet-app-api-devvoronin-gmailcoms-projects.vercel.app",
+      "apiUrl": "https://pet.195-201-110-152.sslip.io",
       "sentryDsn": "",
       "eas": {
         "projectId": "805be4a7-fafa-4188-b3f3-65b8effdd423"
-      }
+      },
+      "mapStyleUrl": ""
     }
   }
 }

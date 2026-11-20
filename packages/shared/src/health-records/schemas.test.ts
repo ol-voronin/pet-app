@@ -86,6 +86,29 @@ describe('createHealthRecordBodySchema', () => {
     expect(result.success).toBe(false);
   });
 
+  it('compares the next due date as an instant when precision is mixed', () => {
+    const later = createHealthRecordBodySchema.safeParse({
+      ...rabies,
+      date: '2026-11-20T10:00:00Z',
+      nextDueDate: '2026-11-20T10:00:00.500Z',
+    });
+    expect(later.success).toBe(true);
+
+    const earlier = createHealthRecordBodySchema.safeParse({
+      ...rabies,
+      date: '2026-11-20T10:00:00.900Z',
+      nextDueDate: '2026-11-20T10:00:00Z',
+    });
+    expect(earlier.success).toBe(false);
+
+    expect(
+      updateHealthRecordBodySchema.safeParse({
+        date: '2026-11-20T10:00:00.900Z',
+        nextDueDate: '2026-11-20T10:00:00Z',
+      }).success,
+    ).toBe(false);
+  });
+
   it('does not let the client choose the source', () => {
     const parsed = createHealthRecordBodySchema.parse({ ...rabies, source: 'clinic' });
     expect(parsed).not.toHaveProperty('source');

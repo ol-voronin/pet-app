@@ -1,23 +1,8 @@
+import { kyivToday } from '@pet-app/shared';
 import { intervalToDuration, parseISO } from 'date-fns';
 
-/** Today's calendar date in Kyiv as `YYYY-MM-DD` (dates are shown in Europe/Kyiv, CLAUDE.md). */
-export function kyivToday(now: Date = new Date()): string {
-  // Older devices know the zone only under its previous name.
-  for (const timeZone of ['Europe/Kyiv', 'Europe/Kiev']) {
-    try {
-      // en-CA formats as YYYY-MM-DD.
-      return new Intl.DateTimeFormat('en-CA', {
-        timeZone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }).format(now);
-    } catch {
-      // Unknown zone name on this device: try the next one.
-    }
-  }
-  return now.toISOString().slice(0, 10);
-}
+// One definition for the app and the API: the API checks birth dates against the same day.
+export { kyivToday };
 
 export type PetAge =
   { unit: 'years'; count: number } | { unit: 'months'; count: number } | { unit: 'underMonth' };

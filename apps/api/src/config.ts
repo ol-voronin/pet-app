@@ -39,6 +39,8 @@ const envSchema = z
     S3_ACCESS_KEY_ID: z.string().min(1).optional(),
     S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
     S3_FORCE_PATH_STYLE: z.stringbool().default(true),
+    /** Address search server with the Photon API. Default: the public photon.komoot.io (ADR-0005). */
+    GEOCODER_URL: z.url().optional(),
     /** Error reports go to Sentry when set; without it nothing is sent anywhere. */
     SENTRY_DSN: z.url().optional(),
     /** Queue and cache (BullMQ). Not used by any module yet; the server compose file already provides it. */
@@ -66,6 +68,11 @@ const envSchema = z
 
 export type Config = z.infer<typeof envSchema>;
 
+/**
+ * An empty variable means "not set": `.env` files often carry `SENTRY_DSN=` as a placeholder, and the URL checks
+ * above would otherwise refuse to start the server over it.
+ */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  return envSchema.parse(env);
+  const set = Object.fromEntries(Object.entries(env).filter(([, value]) => value !== ''));
+  return envSchema.parse(set);
 }

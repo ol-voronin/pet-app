@@ -47,7 +47,7 @@ export function PetForm({ pet, saving, saveError, onSubmit }: PetFormProps) {
   };
 
   const submit = () => {
-    const result = validatePetForm(values);
+    const result = validatePetForm(values, pet ? { storedBirthDate: pet.birthDate } : {});
     if (!result.ok) {
       setErrors(result.errors);
       return;

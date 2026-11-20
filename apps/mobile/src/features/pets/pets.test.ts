@@ -168,6 +168,21 @@ describe('pet form validation', () => {
       ok: false,
       errors: { birthDate: 'pets.form.errors.birthDateFuture' },
     });
+    // An edit that leaves a saved date alone does not re-check it and does not send it (QA #65).
+    const kept = validatePetForm(
+      { ...filled, birthDate: '01.05.1020' },
+      { storedBirthDate: '1020-05-01' },
+    );
+    expect(kept).toMatchObject({ ok: true });
+    expect(kept.ok && kept.body.birthDate).toBeUndefined();
+    expect(
+      validatePetForm({ ...filled, birthDate: '02.05.1020' }, { storedBirthDate: '1020-05-01' }),
+    ).toMatchObject({ ok: false, errors: { birthDate: 'pets.form.errors.birthDateTooOld' } });
+    // A typo in the year (QA #49).
+    expect(validatePetForm({ ...filled, birthDate: '01.05.1020' })).toMatchObject({
+      ok: false,
+      errors: { birthDate: 'pets.form.errors.birthDateTooOld' },
+    });
   });
 
   it('limits the length of text fields like the API does', () => {

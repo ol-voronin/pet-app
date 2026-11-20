@@ -40,7 +40,7 @@ admin (Directus)  ──┘          │                    ├► Object Storag
 - expo-router (табы MVP: Карта · Питомцы · Мероприятия · Профиль; «Мероприятия» — заглушка «скоро», события — V2), TanStack Query, Zustand.
 - Дизайн-система в `src/shared/ui`, токены — `HANDOFF.md` §5 (черновик, светлая тема).
 - Офлайн в MVP: только чтение — кэш TanStack Query сохраняется на устройстве (медкарта, QR-паспорт, PDF). Локальная база, очередь изменений и синхронизация — после MVP, ADR-0003 (PowerSync облако / self-hosted / своя).
-- Карта: @maplibre/maplibre-react-native + свои тайлы одним файлом PMTiles с нашего сервера (ADR-0005); точки — из PostGIS. Нужна своя сборка, в Expo Go — список.
+- Карта: MapLibre GL JS в WebView (ADR-0010) — работает и в Expo Go; тайлы пока OpenFreeMap, затем свой PMTiles (ADR-0005); точки — из PostGIS.
 - Пуши: expo-notifications; локальные напоминания планируются на устройстве.
 - Покупки: RevenueCat. Билеты: внешняя оплата через expo-web-browser.
 - Наблюдаемость: Sentry, PostHog (EU).
@@ -71,6 +71,7 @@ admin (Directus)  ──┘          │                    ├► Object Storag
 - 0003 — PowerSync vs своя синхронизация — отложено: после MVP (решение от 20.11.2026)
 - 0004 — Провайдер OCR/LLM — открыто, до Этапа 3
 - 0005 — Карта: MapLibre + свои тайлы PMTiles, геокодер Photon — принято
+- 0010 — Карта в WebView (MapLibre GL JS), тайлы OpenFreeMap до своего сервера — принято
 - 0006 — Хранилище файлов — принято: Neon Object Storage (запасной — R2)
 - 0008 — Авторизация: OTP + JWT + ротируемый refresh — принято
 - 0009 — Хостинг API: свой сервер в Hetzner, Docker Compose + Caddy — принято

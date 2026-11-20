@@ -8,6 +8,9 @@ import { MemoryPetsRepo } from './modules/pets/memory-repo.js';
 import { PetsService } from './modules/pets/service.js';
 
 /** Builds the OpenAPI document. Version is fixed so the committed spec is stable. */
+import { MemoryPlacesRepo } from './modules/places/memory-repo.js';
+import { PlacesService } from './modules/places/service.js';
+
 export async function generateOpenApi(): Promise<string> {
   const authRepo = new MemoryAuthRepo();
   const petsRepo = new MemoryPetsRepo();
@@ -15,7 +18,11 @@ export async function generateOpenApi(): Promise<string> {
   const auth = new AuthService({ repo: authRepo, sender: new LogOtpSender(), secret });
   const pets = new PetsService({ repo: petsRepo, storage: null });
   const family = new FamilyService({ repo: new MemoryFamilyRepo(petsRepo, authRepo), secret });
-  const app = await buildApp({ version: '0.0.0', auth, pets, family });
+  const places = new PlacesService({
+    repo: new MemoryPlacesRepo(),
+    geocoder: { search: () => Promise.resolve([]) },
+  });
+  const app = await buildApp({ version: '0.0.0', auth, pets, family, places });
   await app.ready();
   const spec = app.swagger();
   await app.close();
