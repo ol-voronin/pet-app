@@ -9,6 +9,8 @@ import {
 } from 'fastify-type-provider-zod';
 import { authModule } from './modules/auth/index.js';
 import type { AuthService } from './modules/auth/service.js';
+import { documentsModule } from './modules/documents/index.js';
+import type { DocumentsService } from './modules/documents/service.js';
 import { familyModule, inviteLandingModule } from './modules/family/index.js';
 import type { FamilyService } from './modules/family/service.js';
 import { healthModule } from './modules/health/index.js';
@@ -25,6 +27,8 @@ export interface AppOptions {
   auth?: AuthService;
   /** Pets routes; need `auth` for the signed-in user. */
   pets?: PetsService;
+  /** Pet documents; need `auth`. */
+  documents?: DocumentsService;
   /** Family access: invites and members; needs `auth`. */
   family?: FamilyService;
   /** Map places and address search; needs `auth`. */
@@ -77,6 +81,9 @@ export async function configureApp(app: App, opts: AppOptions) {
   if (opts.auth) await app.register(authModule, { service: opts.auth });
   if (opts.auth && opts.pets) {
     await app.register(petsModule, { service: opts.pets, auth: opts.auth });
+  }
+  if (opts.auth && opts.documents) {
+    await app.register(documentsModule, { service: opts.documents, auth: opts.auth });
   }
   if (opts.auth && opts.places) {
     await app.register(placesModule, { service: opts.places, auth: opts.auth });
