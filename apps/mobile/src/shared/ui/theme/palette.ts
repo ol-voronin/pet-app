@@ -9,6 +9,12 @@ export const palette = {
   moss: '#4A5644', // secondary text
   sand: '#E4DFD2', // dividers
   sandLight: '#F1EDE3', // muted fills (pressed rows, flat buttons)
+  brandTint: '#EEF7DC', // round icon plates in lists, «open» badges
+  // Map base (design canvas «8а»): calm land, green parks, white roads — pins stay dark on top.
+  mapLand: '#EEF0E6',
+  mapPark: '#DDEBC8',
+  mapWater: '#CFE0E3',
+  mapBuilding: '#E3E5DA',
   // Second color — warnings only.
   alert: '#B3261E',
 } as const;

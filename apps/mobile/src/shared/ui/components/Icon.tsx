@@ -19,6 +19,7 @@ const glyphs = {
   unchecked: 'checkbox-blank-circle-outline',
   // Map.
   search: 'magnify',
+  close: 'close',
   clear: 'close-circle-outline',
   phone: 'phone-outline',
   route: 'directions',

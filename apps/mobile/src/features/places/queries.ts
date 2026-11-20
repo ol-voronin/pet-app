@@ -1,6 +1,6 @@
 import type { CreatePlaceBody, Place } from '@pet-app/shared';
 import type { QueryClient } from '@tanstack/react-query';
-import type { PlaceFilters, PlacesApi, Point } from './api';
+import type { Box, PlaceFilters, PlacesApi, Point } from './api';
 import { canSearchAddress, canSearchPlaces } from './logic';
 
 /** ~100 m: moving a few steps must not refetch the list. */
@@ -10,6 +10,17 @@ const filterKey = (f: PlaceFilters) => [[...f.categories].sort().join(','), f.op
 
 export const placeKeys = {
   all: ['places'] as const,
+  /** Rounded to ~100 m so a tiny pan does not refetch the pins. */
+  inBox: (box: Box, filters: PlaceFilters) =>
+    [
+      ...placeKeys.all,
+      'box',
+      round3(box.west),
+      round3(box.south),
+      round3(box.east),
+      round3(box.north),
+      ...filterKey(filters),
+    ] as const,
   nearby: (center: Point, radiusM: number, filters: PlaceFilters) =>
     [...placeKeys.all, 'nearby', ...pointKey(center), radiusM, ...filterKey(filters)] as const,
   search: (query: string, near: Point, filters: PlaceFilters) =>
@@ -20,6 +31,12 @@ export const placeKeys = {
 };
 
 const MINUTE = 60_000;
+
+export const inBoxPlacesQuery = (api: PlacesApi, box: Box, filters: PlaceFilters) => ({
+  queryKey: placeKeys.inBox(box, filters),
+  queryFn: () => api.inBox(box, filters),
+  staleTime: 10 * MINUTE,
+});
 
 export const nearbyPlacesQuery = (
   api: PlacesApi,
