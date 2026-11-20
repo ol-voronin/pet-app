@@ -49,6 +49,21 @@ connect_shared_caddy() {
   backup="$file.before-pet-app.$(date +%Y%m%d%H%M%S)"
   cp -p "$file" "$backup"
   sed -i '/^# >>> pet-app/,/^# <<< pet-app/d' "$file"
+  # The address may already belong to that project (a bare <IP>.sslip.io often does): then take our own subdomain.
+  if grep -qE "(^|[[:space:],])(https?://)?${domain//./\\.}(:[0-9]+)?([[:space:],{]|$)" "$file"; then
+    case "$domain" in
+      *.sslip.io | *.nip.io)
+        echo "$domain is already used by that project; ours will be pet.$domain"
+        domain="pet.$domain"
+        sed -i "s|^API_DOMAIN=.*|API_DOMAIN=$domain|" "$DIR/.env"
+        ;;
+      *)
+        cp -p "$backup" "$file"
+        echo "$domain is already a site of that project. Point another name at this server, set API_DOMAIN in $DIR/.env, run again."
+        exit 1
+        ;;
+    esac
+  fi
   cat >>"$file" <<CADDY
 # >>> pet-app (API, added by pet-app deploy/setup-server.sh; the rest of this file is not ours)
 $domain {
@@ -136,7 +151,8 @@ IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i
 if [ -f "$DIR/.env" ]; then
   echo "$DIR/.env exists — kept as is."
 else
-  DOMAIN=$(ask "Address for the API (your domain pointed at $IP, or the free one)" "${IP//./-}.sslip.io")
+  # pet.<IP>.sslip.io: the bare <IP>.sslip.io may already be another project's site on this server.
+  DOMAIN=$(ask "Address for the API (your domain pointed at $IP, or the free one)" "pet.${IP//./-}.sslip.io")
   echo "Database: Neon Console → project pet-app → branch dev → Connect → pooled connection string."
   DB=$(ask "DATABASE_URL")
   [ -n "$DB" ] || { echo "DATABASE_URL is required."; exit 1; }

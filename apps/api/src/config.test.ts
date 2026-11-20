@@ -24,4 +24,15 @@ describe('loadConfig', () => {
   it('requires a long JWT secret', () => {
     expect(() => loadConfig({ ...base, JWT_SECRET: 'short' })).toThrow();
   });
+
+  it('treats empty variables as not set', () => {
+    const config = loadConfig({ ...base, SENTRY_DSN: '', GEOCODER_URL: '', OTP_FIXED_CODE: '' });
+    expect(config.SENTRY_DSN).toBeUndefined();
+    expect(config.GEOCODER_URL).toBeUndefined();
+    expect(config.OTP_FIXED_CODE).toBeUndefined();
+  });
+
+  it('still requires the database address', () => {
+    expect(() => loadConfig({ ...base, DATABASE_URL: '' })).toThrow(/DATABASE_URL/);
+  });
 });
