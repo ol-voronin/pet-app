@@ -10,6 +10,9 @@ import { DrizzleFamilyRepo } from './modules/family/drizzle-repo.js';
 import { FamilyService } from './modules/family/service.js';
 import { DrizzlePetsRepo } from './modules/pets/drizzle-repo.js';
 import { PetsService } from './modules/pets/service.js';
+import { DrizzlePlacesRepo } from './modules/places/drizzle-repo.js';
+import { PhotonGeocoder } from './modules/places/geocoder.js';
+import { PlacesService } from './modules/places/service.js';
 import { createStorage } from './modules/storage/index.js';
 import { createErrorReporter } from './observability/errors.js';
 
@@ -29,6 +32,10 @@ const auth = new AuthService({
   ...(config.OTP_FIXED_CODE ? { fixedOtp: config.OTP_FIXED_CODE } : {}),
 });
 const pets = new PetsService({ repo: new DrizzlePetsRepo(db), storage: createStorage(config) });
+const mapPlaces = new PlacesService({
+  repo: new DrizzlePlacesRepo(db),
+  geocoder: new PhotonGeocoder(config.GEOCODER_URL ? { url: config.GEOCODER_URL } : {}),
+});
 const family = new FamilyService({ repo: new DrizzleFamilyRepo(db), secret: config.JWT_SECRET });
 // Fastify is created here (not in build-app) because Vercel's Fastify preset looks for the file that imports it.
 const app = Fastify({ logger: { level: config.LOG_LEVEL } }).withTypeProvider<ZodTypeProvider>();
@@ -37,6 +44,7 @@ await configureApp(app, {
   auth,
   pets,
   family,
+  places: mapPlaces,
   // Swagger UI only locally: its dependency chain does not load on Vercel's Node runtime.
   docsUi: config.APP_ENV === 'development',
   errors,

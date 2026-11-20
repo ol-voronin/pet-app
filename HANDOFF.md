@@ -23,7 +23,7 @@
 |---|---|---|
 | Монорепо pnpm 12 + Turborepo, TS 6.0.3 strict, ESLint 10, Prettier, Vitest | корень | #1, #2 |
 | CI: format · typecheck · lint · test на каждый PR | `.github/workflows/ci.yml` | #3 |
-| Neon + Drizzle, миграции `0000_postgis`, `0001_users`, `0002_auth`, `0003_pets`, `0004_family`, `0005_places`, `0006_places_phones_json` (применены к ветке `dev`) | `packages/db` | #4, #13, #21, #34, #40, #48 |
+| Neon + Drizzle, миграции `0000_postgis`, `0001_users`, `0002_auth`, `0003_pets`, `0004_family`, `0005_places`, `0006_places_phones_json`, `0007_places_search` (применены к ветке `dev`) | `packages/db` | #4, #13, #21, #34, #40, #48 |
 | API Fastify 5: `/health`, OpenAPI 3.1, Swagger UI `/docs`, типизированный клиент (`pnpm gen:api`) | `apps/api`, `packages/shared` | #5 |
 | Мобильное приложение Expo SDK 58, expo-router, 4 таба с одноцветными иконками (Карта · Питомцы · Мероприятия · Профиль; «Мероприятия» — заглушка), i18n uk/en | `apps/mobile` | #6, #9, #22, #33 |
 | Дизайн-система по токенам §5 (только светлая тема), dev-экран «Дизайн-система» в Профиле | `apps/mobile/src/shared/ui` | #8 |
@@ -38,11 +38,12 @@
 | Деплой API на Vercel (staging): работает, проверены `/health`, вход с `000000`, питомцы | `apps/api` | #14, #24 |
 | Точки карты: таблица `places` (PostGIS), импорт из OpenStreetMap (`pnpm -F api osm:import`), еженедельный workflow `OSM import` | `apps/api/src/modules/places/osm`, `packages/db/src/schema/places.ts` | #40 |
 | Админка точек: Directus в `docker-compose` (выключен, пока владелец не включит), роль БД только на `places`, скрипт настройки формы, видов и роли «Модератор» | `deploy/directus`, `deploy/docker-compose.yml` | #48 |
+| API карты: точки по области, список по расстоянию, карточка, поиск по названию с опечатками и неверной раскладкой, поиск по адресу через Photon | `apps/api/src/modules/places`, `packages/shared/src/places` | #PRNUM |
 | Сервер: Docker-образ API, `docker-compose` (API + Caddy + Redis), деплой из `main` по SSH; Sentry в api и mobile (выключен без DSN) | `apps/api/Dockerfile`, `deploy/`, `.github/workflows/deploy.yml`, ADR-0009 | #38 |
 | Хранилище файлов: политика (типы, 20 МБ), ключи объектов, подписанные ссылки S3, конфиг `S3_*`. Роутов пока нет — появятся с CRUD питомцев | `apps/api/src/modules/storage`, `packages/shared/src/files` | #20 |
 | Питомцы API: `/pets` CRUD, фото в два шага (подписанная ссылка → подтверждение), роли owner / editor / viewer, мягкое удаление | `apps/api/src/modules/pets`, `packages/shared/src/pets` | #21 |
 
-Тестов: 257 (api 123, shared 18, db 12, mobile 104). Авторизация и питомцы проверены вживую на Neon `dev`.
+Тестов: 274 (api 140, shared 18, db 12, mobile 104). Авторизация и питомцы проверены вживую на Neon `dev`.
 Сценарий «собака Бадді, коты Манго и Дим, второй взрослый с ролью viewer» проверен на staging API: viewer видит
 питомцев, изменить и удалить не может (403). **Экраны приложения автор в рендере не видел** — проверка на телефоне за владельцем.
 В карточке и форме питомца нет веса: это медзапись (`docs/DATA_MODEL.md`), появится с медкартой на Этапе 2.
@@ -58,6 +59,9 @@
 - Workflow `OSM import` раз в неделю пишет в базу, только если есть секрет `OSM_IMPORT_DATABASE_URL` (строка подключения
   Neon); без него скачивает, считает и кладёт сырой ответ в артефакт. Первый импорт сделан из такого артефакта.
 - Из песочницы Claude Code серверы Overpass недоступны — живой запрос идёт только из GitHub Actions.
+- API карты проверен вживую на Neon `dev`: в рамке Харькова 253 точки; «dtnfgntrf» находит ветаптеки, «еко центр» —
+  «ЕкоЦентр» в 322 м; адрес «Сумська 10» находится за 1,4 с. Слабые места: русский адрес («Харьков Сумская 10») Photon
+  ищет плохо; латинское название кириллицей («мастерзо» → MasterZoo) не находится; «відкрито зараз» не сделано.
 
 ### Админка точек (Directus) — готова в коде, включает владелец
 - Directus 12.7, тариф Core: бесплатно, ключ не нужен (лицензия MSCL-1.0: внутреннее использование разрешено).

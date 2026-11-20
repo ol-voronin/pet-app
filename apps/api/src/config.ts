@@ -39,6 +39,8 @@ const envSchema = z
     S3_ACCESS_KEY_ID: z.string().min(1).optional(),
     S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
     S3_FORCE_PATH_STYLE: z.stringbool().default(true),
+    /** Address search server with the Photon API. Default: the public photon.komoot.io (ADR-0005). */
+    GEOCODER_URL: z.url().optional(),
     /** Error reports go to Sentry when set; without it nothing is sent anywhere. */
     SENTRY_DSN: z.url().optional(),
     /** Queue and cache (BullMQ). Not used by any module yet; the server compose file already provides it. */

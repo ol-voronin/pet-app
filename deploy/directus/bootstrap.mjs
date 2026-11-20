@@ -156,6 +156,7 @@ const FIELDS = [
   ['updated_at', { interface: 'datetime', ...readonly, width: 'half' }],
   ['created_by', { interface: 'input', ...readonly, hidden: true }],
   ['id', { interface: 'input', ...readonly, hidden: true }],
+  ['search_text', { interface: 'input', ...readonly, hidden: true }],
 ];
 
 const LIST_FIELDS = ['name', 'category', 'address', 'phones', 'verified_at', 'source'];

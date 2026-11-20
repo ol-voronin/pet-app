@@ -44,6 +44,21 @@ APP_ENV=staging OTP_FIXED_CODE=000000 DATABASE_URL=… JWT_SECRET=… node --no-
 Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` branch), `JWT_SECRET`,
 `OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
 
+## Map API
+`src/modules/places`: read-only routes behind sign-in. Only public, approved, not hidden places are returned.
+- `GET /places?bbox=west,south,east,north&categories=clinic,pharmacy&open247=true` — pins for the visible map
+  (up to 1000; `truncated` says there were more).
+- `GET /places/nearby?lat=&lon=&radiusM=&limit=` — list by distance.
+- `GET /places/search?q=&lat=&lon=` — by name. Forgives typos (Postgres `pg_trgm`), a Russian spelling stored in
+  OSM and a wrong keyboard layout (`dtnfgntrf` → `ветаптека`); see `search-text.ts`.
+- `GET /places/:placeId` — the card.
+- `GET /geocode?q=&lat=&lon=` — address search in Ukraine through Photon (ADR-0005), cached for a day, one
+  request at a time. What leaves our server: the typed address and the map centre rounded to about 1 km — no
+  user id and no phone IP. `GEOCODER_URL` points it at another Photon server; when it is down the route answers 503.
+
+Not done yet: "open now" (needs an `opening_hours` parser; two thirds of places have no hours in OSM) and
+search by service (second version, `docs/PRD.md`).
+
 ## Map places (OpenStreetMap import)
 `src/modules/places/osm`: `mapping.ts` turns OSM tags into our categories, `import.ts` holds the rules,
 `src/scripts/import-osm.ts` is the entry. Data source is the Overpass API; Google Places is never used.
