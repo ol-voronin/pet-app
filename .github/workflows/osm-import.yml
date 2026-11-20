@@ -1,0 +1,60 @@
+name: OSM import
+
+# Refreshes map places from OpenStreetMap (apps/api/src/scripts/import-osm.ts).
+# With the DATABASE_URL secret it writes to the database; without it, it only fetches and counts.
+# On pull requests that touch the import it always runs dry, as a check against the live API.
+
+on:
+  schedule:
+    # Mondays 03:17 UTC: OSM changes slowly, a weekly refresh is enough.
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - apps/api/src/modules/places/osm/**
+      - apps/api/src/scripts/import-osm.ts
+      - .github/workflows/osm-import.yml
+
+concurrency:
+  group: osm-import-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    name: import places
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ github.event_name != 'pull_request' && secrets.OSM_IMPORT_DATABASE_URL || '' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Version comes from "packageManager" in package.json
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --filter "api..."
+      - run: pnpm -F @pet-app/shared build && pnpm -F @pet-app/db build
+
+      - name: Import (dry run when there is no database secret)
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            pnpm -F api osm:import --save="$RUNNER_TEMP/overpass.json"
+          else
+            echo "::notice::No OSM_IMPORT_DATABASE_URL secret (or a pull request): dry run, nothing is written."
+            pnpm -F api osm:import --dry-run --save="$RUNNER_TEMP/overpass.json"
+          fi
+
+      # The raw answer: lets a person load exactly this data by hand (`--from-file`) or debug a bad run.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: overpass-${{ github.run_id }}
+          path: ${{ runner.temp }}/overpass.json
+          retention-days: 14
