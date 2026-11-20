@@ -116,6 +116,7 @@ jobs:
           ssh server "test -f $DEPLOY_DIR/.env" \
             || { echo "::error::$DEPLOY_DIR/.env is missing on the server. See apps/api/README.md."; exit 1; }
           scp deploy/docker-compose.yml deploy/Caddyfile "server:$DEPLOY_DIR/"
+          scp -r deploy/directus "server:$DEPLOY_DIR/"
           docker save "$IMAGE:$VERSION" "$IMAGE:latest" | gzip | ssh server "gunzip | docker load"
           ssh server "cd $DEPLOY_DIR && docker compose up -d --remove-orphans"
 

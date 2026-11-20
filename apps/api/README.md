@@ -148,6 +148,39 @@ The whole stack: copy `deploy/` to a folder, add `.env` with `API_DOMAIN=localho
 
 Пока секретов `SSH_HOST` и `SSH_KEY` нет, workflow только собирает образ и проверяет, что он стартует.
 
+### Пошагово для владельца: админка точек (Directus)
+Админка нужна, чтобы руками проверять точки Харькова и разбирать очередь меток. Живёт на том же сервере, адрес —
+`https://<API_DOMAIN>/cms/admin`. Бесплатно: тариф Core, ключ не нужен. Делать после того, как заработал сам сервер.
+
+1. **Доступ к базе.** Neon Console → SQL Editor → ветка `dev` → вставить `deploy/directus/setup.sql`, заменив
+   `CHANGE_ME` на свой пароль (`openssl rand -hex 24`). Скрипт создаёт отдельного пользователя базы, который из
+   наших таблиц видит только `places`: пользователей, питомцев и медкарты админка прочитать не может.
+2. **Секреты админки** — файл `/opt/pet-app/directus.env` на сервере (в репозиторий не попадает):
+   ```
+   SECRET=…                      (openssl rand -hex 32)
+   DB_CONNECTION_STRING=postgresql://directus_admin:<пароль из шага 1>@<хост Neon без -pooler>/petapp?sslmode=require
+   ADMIN_EMAIL=…                 (твой e-mail — логин в админку)
+   ADMIN_PASSWORD=…              (длинный пароль)
+   ```
+   Хост — из строки подключения Neon с выключенным «Connection pooling»: через pooler админка не работает надёжно.
+   Затем: `chown deploy:deploy /opt/pet-app/directus.env && chmod 600 /opt/pet-app/directus.env`.
+3. **Включить.** В `/opt/pet-app/.env` добавить строку `COMPOSE_PROFILES=admin`, затем:
+   ```bash
+   cd /opt/pet-app && docker compose up -d
+   ```
+4. **Настроить форму, виды и роль** — один раз (и после обновления скрипта):
+   ```bash
+   docker run --rm --network pet-app_default --env-file /opt/pet-app/directus.env -e DIRECTUS_URL=http://directus:8055 -v /opt/pet-app/directus:/w:ro node:22-slim node /w/bootstrap.mjs
+   ```
+5. **Первый вход.** `https://<API_DOMAIN>/cms/admin`. Directus спросит тариф — выбрать «I'm using Core plan» — и
+   e-mail владельца проекта с согласием на лицензию: это твоё решение, за тебя его никто не принимает.
+6. **Как проверять.** Слева вид «Харків — не перевірені». Открыть точку, поправить название, адрес, телефон,
+   поставить дату в «Verified At» — после этого импорт OSM точку не меняет. Убрать точку с карты — дата в «Deleted At»
+   (строки не удаляются). Новая точка — «Створити», источник «Додано вручну». Помощнику — пользователь с ролью «Модератор».
+
+Что видит и может админка: только `places`; читать, добавлять, изменять. Удалять строки не может даже администратор —
+это запрещено на уровне базы.
+
 ### Server operations
 ```bash
 cd /opt/pet-app && docker compose ps
