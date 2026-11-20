@@ -89,21 +89,21 @@
   правка, права модератора, запрет удаления, работа под `/cms`. **С Neon не проверено** — роль в базе создаёт владелец.
 - `places.phones` стал jsonb-массивом (миграция `0006`): массивы Postgres Directus редактировать не умеет.
 
-### Сервер в Hetzner (готово в коде, ждёт владельца)
-- Решение — ADR-0009 (и дополнение от 20.11). На сервере `deploy/docker-compose.yml`: API, Redis; Caddy — свой или
-  чужой. Сервер обновляется сам: таймер раз в 5 минут запускает `deploy/update.sh` (забирает `main`, собирает образ,
-  ждёт `healthy`, откатывает при сбое). Секреты GitHub не нужны; доставка по SSH из `deploy.yml` — запасная.
-- **За владельцем:** один раз `deploy/setup-server.sh` на сервере (команда — в `apps/api/README.md`).
-- После первого деплоя: проверить `https://<адрес>/health`, переключить `apps/mobile/app.json` → `extra.apiUrl`.
-- Проверено локально 20.11: сборка образа, `docker compose up`, HTTPS через Caddy, вход `000000` и питомцы на Neon `dev`.
-  На самом сервере не проверено — доступа у Claude Code нет.
-- Порты 80/443 на сервере держит Caddy другого проекта (`legal-search`), и адрес `195-201-110-152.sslip.io` тоже его;
-  наш — `pet.195-201-110-152.sslip.io`. Наш Caddy там не запускается: скрипт
-  добавляет в тот Caddyfile отдельный блок для нашего адреса (метки `# >>> pet-app`), API слушает только `127.0.0.1`.
+### Сервер в Hetzner — работает с 20.11
+- Адрес API (staging): `https://pet.195-201-110-152.sslip.io` — на него смотрит приложение (`app.json` → `extra.apiUrl`).
+  База — Neon `dev`, вход по коду `000000`. Проверено 20.11: `/health`, вход, `/pets`, `/places/nearby`.
+- Решение — ADR-0009 (и дополнение от 20.11). На сервере `/opt/pet-app`: `docker-compose.yml` (API, Redis), `.env`,
+  исходники в `src`. Сервер обновляется сам: таймер `pet-app-update.timer` раз в 5 минут запускает `deploy/update.sh`
+  (забирает `main`, собирает образ при изменениях API, ждёт `healthy`, откатывает при сбое). Журнал:
+  `journalctl -u pet-app-update`. Секреты GitHub не нужны; доставка по SSH из `deploy.yml` — запасная.
+- Сервер общий: порты 80/443 держит Caddy другого проекта (`legal-search`), и адрес `195-201-110-152.sslip.io` его.
+  Наш сайт — блок в `/etc/caddy/Caddyfile` между метками `# >>> pet-app`; API слушает только `127.0.0.1:3100`.
+- Повторная настройка или ремонт — та же команда `deploy/setup-server.sh` (в `apps/api/README.md`), она идемпотентна.
+- Не сделано: свои тайлы карты на сервере (`extra.mapStyleUrl`), Directus (профиль `admin`), `S3_*` (фото отвечают 503).
 - Sentry: код готов в api (`SENTRY_DSN`) и mobile (`extra.sentryDsn` или `EXPO_PUBLIC_SENTRY_DSN`); без DSN ничего
   не отправляется. В отчётах нет тел запросов, заголовков и данных пользователя.
 
-### Деплой API на Vercel (запасной staging, бесплатно)
+### Деплой API на Vercel (запасной staging, бесплатно; приложение туда больше не смотрит)
 - Vercel, проект `pet-app-api` (id `prj_SQcgaMTOivhIQcKfseJVddbwitg2`, команда `team_8iL2PPo1JUY7JAp1jlS3pzmp`),
   Root Directory `apps/api`, регион функций `fra1`, Node 22, защита деплоев выключена (приложению нужен публичный URL).
 - Адрес: `https://pet-app-api-devvoronin-gmailcoms-projects.vercel.app` — деплой из `main`.
