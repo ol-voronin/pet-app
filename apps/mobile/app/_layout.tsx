@@ -6,7 +6,12 @@ import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { session, useSession } from '@/features/auth';
 import { queryClient } from '@/shared/api/queryClient';
+import { SENTRY_DSN } from '@/shared/config';
+import { initErrorReporting } from '@/shared/observability/errors';
 import { useTheme } from '@/shared/ui';
+
+// Once per app start; a no-op until a DSN is configured.
+void initErrorReporting(SENTRY_DSN, __DEV__ ? 'development' : 'production');
 
 export default function RootLayout() {
   const status = useSession((s) => s.status);

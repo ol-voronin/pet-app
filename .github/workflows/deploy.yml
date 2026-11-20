@@ -1,0 +1,136 @@
+name: Deploy API
+
+# Builds the API image the way the server runs it and, on `main`, ships it to the server over SSH.
+# Setup (server and repository secrets): apps/api/README.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/api/**
+      - packages/shared/**
+      - packages/db/**
+      - deploy/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - tsconfig.base.json
+      - .nvmrc
+      - .dockerignore
+      - .github/workflows/deploy.yml
+  pull_request:
+    # Same list as above: a PR that touches the image must still build and start.
+    paths:
+      - apps/api/**
+      - packages/shared/**
+      - packages/db/**
+      - deploy/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - tsconfig.base.json
+      - .nvmrc
+      - .dockerignore
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api-${{ github.ref }}
+  # Never cancel a deploy halfway; a newer one waits for its turn.
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    name: docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      IMAGE: pet-app-api
+      # Secrets are not available in `if:`; an empty value means "the server is not set up yet".
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ vars.SSH_USER || 'deploy' }}
+      SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+      DEPLOY_DIR: /opt/pet-app
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image (same Node as CI, from .nvmrc)
+        run: |
+          VERSION="${GITHUB_SHA::7}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          docker build \
+            --file apps/api/Dockerfile \
+            --build-arg "NODE_IMAGE=node:$(cat .nvmrc)-slim" \
+            --build-arg "APP_VERSION=$VERSION" \
+            --tag "$IMAGE:$VERSION" --tag "$IMAGE:latest" \
+            .
+
+      - name: Smoke test (the container starts and answers /health)
+        run: |
+          docker run -d --name smoke -p 3000:3000 \
+            -e APP_ENV=staging \
+            -e DATABASE_URL=postgresql://smoke:smoke@localhost/smoke \
+            -e JWT_SECRET=smoke-test-secret-smoke-test-secret-0123 \
+            "$IMAGE:$VERSION"
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:3000/health; then echo; docker rm -f smoke >/dev/null; exit 0; fi
+            sleep 1
+          done
+          docker logs smoke
+          exit 1
+
+      - name: Server is not set up yet
+        if: github.event_name != 'pull_request' && env.SSH_HOST == ''
+        run: echo "::notice::Secrets SSH_HOST and SSH_KEY are not set, deploy skipped. See apps/api/README.md."
+
+      - name: Set up SSH
+        if: github.event_name != 'pull_request' && env.SSH_HOST != ''
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            # No pinned host key: trust the key the server presents now.
+            ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          fi
+          {
+            echo "Host server"
+            echo "  HostName $SSH_HOST"
+            echo "  User $SSH_USER"
+            echo "  Port $SSH_PORT"
+            echo "  IdentityFile ~/.ssh/deploy_key"
+            echo "  IdentitiesOnly yes"
+          } > ~/.ssh/config
+
+      - name: Deploy
+        if: github.event_name != 'pull_request' && env.SSH_HOST != ''
+        run: |
+          ssh server "test -f $DEPLOY_DIR/.env" \
+            || { echo "::error::$DEPLOY_DIR/.env is missing on the server. See apps/api/README.md."; exit 1; }
+          scp deploy/docker-compose.yml deploy/Caddyfile "server:$DEPLOY_DIR/"
+          docker save "$IMAGE:$VERSION" "$IMAGE:latest" | gzip | ssh server "gunzip | docker load"
+          ssh server "cd $DEPLOY_DIR && docker compose up -d --remove-orphans"
+
+      - name: Wait until the new version is healthy
+        if: github.event_name != 'pull_request' && env.SSH_HOST != ''
+        run: |
+          for i in $(seq 1 30); do
+            STATE=$(ssh server "cd $DEPLOY_DIR && docker compose ps api --format '{{.Health}} {{.Image}}'" || true)
+            echo "$STATE"
+            if [ "${STATE%% *}" = "healthy" ]; then
+              # Keep the two previous images for a quick rollback, drop the rest.
+              ssh server "docker images $IMAGE --format '{{.Tag}}' | grep -v -e latest -e '$VERSION' | tail -n +3 | xargs -r -I{} docker rmi $IMAGE:{}" || true
+              exit 0
+            fi
+            sleep 2
+          done
+          ssh server "cd $DEPLOY_DIR && docker compose logs --tail 50 api"
+          exit 1

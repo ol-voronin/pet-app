@@ -28,8 +28,8 @@ Set all of these or none (without them the API runs without file uploads):
 bucket `pet-app-files`, key id = credential `token_id`, secret = `s3_secret_access_key`
 (Neon Console → Connect → Storage). Keys live in environment secrets, never in the repository.
 
-## Deploy (staging, free)
-Vercel Hobby, project `pet-app-api`, Root Directory `apps/api`, region `fra1` (Frankfurt, next to Neon).
+## Deploy: Vercel (backup staging, free)
+Kept until the server below is up and checked. Vercel Hobby, project `pet-app-api`, Root Directory `apps/api`, region `fra1` (Frankfurt, next to Neon).
 Entry point is `src/index.ts`: it imports `fastify` itself, because Vercel's preset looks for the file that does.
 Workspace packages are compiled to `dist` (`pnpm build`); Vercel runs only JavaScript from `node_modules`.
 Swagger UI is not loaded outside development: its dependency `require()`s an ESM-only package, which Vercel's
@@ -43,3 +43,106 @@ APP_ENV=staging OTP_FIXED_CODE=000000 DATABASE_URL=… JWT_SECRET=… node --no-
 ```
 Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` branch), `JWT_SECRET`,
 `OTP_FIXED_CODE=000000`. Staging accepts the fixed code for every phone — it is a test server, not production.
+
+## Error reports (Sentry)
+Set `SENTRY_DSN` and requests that end with a 5xx are reported to Sentry; without it nothing is sent and the
+SDK is not even loaded. Reports carry the HTTP method, the route pattern (`/pets/:petId`) and the request id —
+no bodies, headers, query strings or user data. Code: `src/observability/errors.ts`.
+
+## Deploy: own server (Docker + Caddy + Redis)
+Decision: `docs/adr/0009-api-hosting.md`. The image is built by `.github/workflows/deploy.yml` on every push to
+`main` and loaded onto the server over SSH (no registry). On the server: `deploy/docker-compose.yml` with the
+API, Caddy (HTTPS, automatic certificate) and Redis. The database stays in Neon, files in Neon Object Storage.
+Migrations are not run by the deploy: `pnpm -F db migrate` stays a deliberate manual step.
+
+Check a change locally the way the server runs it (same Node as CI, compiled entry):
+```bash
+docker build -f apps/api/Dockerfile --build-arg "NODE_IMAGE=node:$(cat .nvmrc)-slim" -t pet-app-api .
+```
+```bash
+docker run --rm -p 3000:3000 -e APP_ENV=staging -e OTP_FIXED_CODE=000000 -e DATABASE_URL=… -e JWT_SECRET=… pet-app-api
+```
+The whole stack: copy `deploy/` to a folder, add `.env` with `API_DOMAIN=localhost` and the variables below,
+`docker compose up -d`, then `https://localhost/health` (Caddy signs `localhost` with its own local CA).
+
+### Пошагово для владельца: сервер
+Нужно один раз. Команды — на сервере под `root`, если не сказано иначе. Ничего платного: сервер уже есть.
+
+1. **Docker.** Проверить: `docker compose version`. Если команды нет:
+   ```bash
+   curl -fsSL https://get.docker.com | sh
+   ```
+2. **Свободны ли порты 80 и 443.** На сервере могут жить другие проекты:
+   ```bash
+   ss -ltnp | grep -E ':(80|443) '
+   ```
+   Пусто — всё хорошо. Если порты заняты другим веб-сервером, остановись и напиши в чат: Caddy не запустится,
+   нужно будет пустить API через тот веб-сервер.
+3. **Пользователь для деплоя и папка.** Группа `docker` даёт права, равные `root`, поэтому ключ этого
+   пользователя храним только в секретах GitHub.
+   ```bash
+   adduser --disabled-password --gecos "" deploy && usermod -aG docker deploy
+   ```
+   ```bash
+   install -d -o deploy -g deploy -m 750 /opt/pet-app
+   ```
+4. **Ключ SSH для деплоя.** На своём Mac (не на сервере):
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/pet-app-deploy -N "" -C "pet-app deploy"
+   ```
+   Показать публичную часть: `cat ~/.ssh/pet-app-deploy.pub`. На сервере вставить её вместо `ssh-ed25519 …`:
+   ```bash
+   install -d -o deploy -g deploy -m 700 /home/deploy/.ssh
+   ```
+   ```bash
+   echo 'ssh-ed25519 …' >> /home/deploy/.ssh/authorized_keys && chown deploy:deploy /home/deploy/.ssh/authorized_keys && chmod 600 /home/deploy/.ssh/authorized_keys
+   ```
+5. **Адрес.** Caddy сам получит сертификат, когда имя указывает на сервер. Лучше свой домен: A-запись
+   `api.<твой-домен>` → IP сервера. Домена нет — временно подойдёт бесплатное имя `<IP-через-дефисы>.sslip.io`
+   (для `203.0.113.7` это `203-0-113-7.sslip.io`); у таких имён общий лимит сертификатов, выпуск может не пройти с первого раза.
+6. **Секреты на сервере** — файл `/opt/pet-app/.env`. В репозиторий он не попадает. Значения — те же, что сейчас на Vercel.
+   ```bash
+   nano /opt/pet-app/.env
+   ```
+   ```
+   API_DOMAIN=api.example.com
+   APP_ENV=staging
+   OTP_FIXED_CODE=000000
+   DATABASE_URL=postgresql://…   (Neon → ветка dev → Connect → pooled)
+   JWT_SECRET=…                  (не короче 32 символов: openssl rand -hex 32)
+   SENTRY_DSN=                   (пусто, пока нет аккаунта Sentry)
+   ```
+   Хранилище файлов, когда появятся ключи (все пять или ни одного): `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`,
+   `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Комментарии в скобках в файл не переносить. Затем:
+   ```bash
+   chown deploy:deploy /opt/pet-app/.env && chmod 600 /opt/pet-app/.env
+   ```
+7. **Файрвол.** Открыть входящие 80/tcp, 443/tcp и 443/udp (в панели Hetzner Robot → Firewall, если он включён;
+   на сервере, если стоит `ufw`: `ufw allow 80,443/tcp && ufw allow 443/udp`). Порт SSH оставить открытым.
+
+### Пошагово для владельца: GitHub
+1. Репозиторий → Settings → Secrets and variables → Actions → **New repository secret**:
+   - `SSH_HOST` — IP или имя сервера;
+   - `SSH_KEY` — содержимое файла `~/.ssh/pet-app-deploy` целиком (приватная часть, с первой до последней строки).
+2. Необязательно, вкладка **Variables**: `SSH_USER` (по умолчанию `deploy`), `SSH_PORT` (по умолчанию `22`).
+   Необязательный секрет `SSH_KNOWN_HOSTS` — вывод `ssh-keyscan <сервер>`: тогда деплой сверяет ключ сервера.
+3. Actions → **Deploy API** → Run workflow (ветка `main`). Дальше деплой идёт сам при каждом слиянии в `main`.
+4. Проверка: `https://<API_DOMAIN>/health` отвечает `{"status":"ok",…}`. После этого напиши в чат адрес —
+   приложение переключим на него (`apps/mobile/app.json` → `extra.apiUrl`), Vercel останется запасным.
+
+Пока секретов `SSH_HOST` и `SSH_KEY` нет, workflow только собирает образ и проверяет, что он стартует.
+
+### Server operations
+```bash
+cd /opt/pet-app && docker compose ps
+```
+```bash
+cd /opt/pet-app && docker compose logs --tail 100 api
+```
+Roll back to a previous image (tags are short commit hashes, the deploy keeps the last three):
+```bash
+docker images pet-app-api
+```
+```bash
+docker tag pet-app-api:<hash> pet-app-api:latest && cd /opt/pet-app && docker compose up -d
+```

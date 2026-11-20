@@ -49,13 +49,13 @@ admin (Directus)  ──┘          │                    ├► Object Storag
 | Что | Где |
 |---|---|
 | БД | Neon (PostgreSQL + PostGIS), регион EU |
-| API + воркеры | Кандидат — выделенный сервер владельца в Hetzner Falkenstein (EU); решить при первом деплое |
+| API + воркеры | Выделенный сервер владельца в Hetzner Falkenstein (EU): Docker Compose, Caddy (HTTPS) — ADR-0009. Vercel — запасной staging |
 | Вспомогательное | VPS владельца в Украине (adm.tools): кандидат для Directus-админки и резервных копий |
 | Файлы | Neon Object Storage (Франкфурт), приватный бакет (ADR-0006) |
-| Очередь/кэш | Upstash Redis |
+| Очередь/кэш | Redis на том же сервере (в `deploy/docker-compose.yml`), наружу не открыт |
 | B2B-кабинет | Vercel |
 | Сборки | EAS Build / Submit / Update |
-| CI | GitHub Actions: typecheck, lint, test на каждый PR |
+| CI | GitHub Actions: typecheck, lint, test на каждый PR; сборка образа API и деплой из `main` по SSH |
 
 ## Безопасность
 - Закон Украины о защите персональных данных + GDPR: отдельные согласия (геолокация, маркетинг), удаление аккаунта в приложении.
@@ -72,4 +72,5 @@ admin (Directus)  ──┘          │                    ├► Object Storag
 - 0005 — MapLibre + MapTiler vs Mapbox — открыто, до Этапа 5
 - 0006 — Хранилище файлов — принято: Neon Object Storage (запасной — R2)
 - 0008 — Авторизация: OTP + JWT + ротируемый refresh — принято
+- 0009 — Хостинг API: свой сервер в Hetzner, Docker Compose + Caddy — принято
 - 0007 — Рендер аватара: в приложении vs на сервере — открыто, до Этапа 5b

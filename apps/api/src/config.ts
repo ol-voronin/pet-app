@@ -39,6 +39,10 @@ const envSchema = z
     S3_ACCESS_KEY_ID: z.string().min(1).optional(),
     S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
     S3_FORCE_PATH_STYLE: z.stringbool().default(true),
+    /** Error reports go to Sentry when set; without it nothing is sent anywhere. */
+    SENTRY_DSN: z.url().optional(),
+    /** Queue and cache (BullMQ). Not used by any module yet; the server compose file already provides it. */
+    REDIS_URL: z.url().optional(),
   })
   .superRefine((env, ctx) => {
     const missing = S3_REQUIRED.filter((name) => !env[name]);

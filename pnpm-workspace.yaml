@@ -3,3 +3,5 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+  # Only uploads source maps to Sentry during release builds; its install script downloads a binary we do not need yet.
+  '@sentry/cli': false

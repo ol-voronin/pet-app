@@ -11,6 +11,7 @@ import { FamilyService } from './modules/family/service.js';
 import { DrizzlePetsRepo } from './modules/pets/drizzle-repo.js';
 import { PetsService } from './modules/pets/service.js';
 import { createStorage } from './modules/storage/index.js';
+import { createErrorReporter } from './observability/errors.js';
 
 const config = loadConfig();
 if (config.APP_ENV === 'production') {
@@ -18,6 +19,7 @@ if (config.APP_ENV === 'production') {
   throw new Error('No production OTP sender configured yet');
 }
 
+const errors = await createErrorReporter(config);
 const sender = new LogOtpSender();
 const db = createDb(config.DATABASE_URL);
 const auth = new AuthService({
@@ -37,6 +39,7 @@ await configureApp(app, {
   family,
   // Swagger UI only locally: its dependency chain does not load on Vercel's Node runtime.
   docsUi: config.APP_ENV === 'development',
+  errors,
 });
 sender.log = app.log;
 
@@ -46,3 +49,13 @@ app.listen({ host: config.HOST, port: config.PORT }).catch((err: unknown) => {
   app.log.error(err);
   process.exit(1);
 });
+
+// `docker stop` sends SIGTERM: finish requests in flight and send queued error reports, then exit.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.once(signal, () => {
+    void app
+      .close()
+      .then(() => errors?.flush(2000))
+      .finally(() => process.exit(0));
+  });
+}
