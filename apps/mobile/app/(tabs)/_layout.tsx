@@ -1,4 +1,5 @@
 import { Redirect, Tabs } from 'expo-router';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { usePendingInvite } from '@/features/family/hooks';
@@ -14,7 +15,10 @@ const tabIcon = (name: IconName) =>
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { gate } = useAddPetGate();
+  // Once the tabs are on screen they stay: reloading the pets list must not rebuild them,
+  // which would reset the open tab to the Map.
+  const tabsShown = useRef(false);
+  const { gate } = useAddPetGate({ settled: tabsShown.current });
   const pendingInvite = usePendingInvite((s) => s.token);
 
   // An invite link opened before sign-in comes first: the invited person usually has no pets yet.
@@ -31,6 +35,7 @@ export default function TabsLayout() {
       </View>
     );
   }
+  tabsShown.current = true;
   return (
     <Tabs
       screenOptions={{

@@ -28,6 +28,30 @@ describe('addPetGate — «Додайте улюбленця» after the first s
   });
 });
 
+describe('addPetGate — once the tabs are on screen', () => {
+  /**
+   * Seen on a real phone: the pets list failed to load, the tabs opened, and every reload of
+   * the list (opening the Pets tab) put the gate back to "wait", which rebuilt the tabs and
+   * threw the user to the Map.
+   */
+  it('keeps the tabs when the list is reloaded after a failed load', () => {
+    const settled = true;
+    expect(addPetGate({ done: false, pets: { status: 'pending', count: 0 }, settled })).toBe(
+      'skip',
+    );
+    expect(addPetGate({ done: false, pets: { status: 'error', count: 0 }, settled })).toBe('skip');
+  });
+
+  it('does not pull the user out of the tabs later, even if the list turns out empty', () => {
+    expect(addPetGate({ done: false, pets: loaded(0), settled: true })).toBe('skip');
+    expect(addPetGate({ done: null, pets: loaded(0), settled: true })).toBe('skip');
+  });
+
+  it('still decides normally before the tabs were shown', () => {
+    expect(addPetGate({ done: false, pets: loaded(0), settled: false })).toBe('show');
+  });
+});
+
 describe('OnboardingFlags', () => {
   const userA = '11111111-1111-4111-8111-111111111111';
   const userB = '22222222-2222-4222-8222-222222222222';

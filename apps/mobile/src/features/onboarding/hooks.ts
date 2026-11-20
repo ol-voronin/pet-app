@@ -20,11 +20,15 @@ export function completeAddPet(userId: string): void {
 }
 
 /** Decides whether the signed-in user sees «Додайте улюбленця» or the tabs. */
-export function useAddPetGate(): { gate: AddPetGate; userId: string | null } {
+export function useAddPetGate(options?: { settled?: boolean }): {
+  gate: AddPetGate;
+  userId: string | null;
+} {
+  const settled = options?.settled ?? false;
   const userId = useSession((s) => s.user?.id ?? null);
   const done = useDone((s) => (userId ? (s[userId] ?? null) : null));
-  // A returning user does not wait for the pets list.
-  const pets = usePets({ enabled: done === false });
+  // A returning user does not wait for the pets list; neither does a screen that is already decided.
+  const pets = usePets({ enabled: done === false && !settled });
 
   useEffect(() => {
     if (!userId || done !== null) return;
@@ -45,6 +49,10 @@ export function useAddPetGate(): { gate: AddPetGate; userId: string | null } {
 
   return {
     userId,
-    gate: addPetGate({ done, pets: { status: pets.status, count: pets.data?.length ?? 0 } }),
+    gate: addPetGate({
+      done,
+      pets: { status: pets.status, count: pets.data?.length ?? 0 },
+      settled,
+    }),
   };
 }

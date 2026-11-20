@@ -10,9 +10,15 @@ export interface AddPetGateInput {
   /** Has this user already been through the screen? `null` while the flag is being read. */
   done: boolean | null;
   pets: { status: 'pending' | 'error' | 'success'; count: number };
+  /**
+   * The tabs have already been shown in this app session. From then on the answer is final:
+   * a later reload of the pets list must never take the tabs away (that reset them to the map).
+   */
+  settled?: boolean;
 }
 
-export function addPetGate({ done, pets }: AddPetGateInput): AddPetGate {
+export function addPetGate({ done, pets, settled = false }: AddPetGateInput): AddPetGate {
+  if (settled) return 'skip';
   if (done === null) return 'wait';
   // Shown once: «Пізніше» or a first pet ends it for good, even if all pets are deleted later.
   if (done) return 'skip';
