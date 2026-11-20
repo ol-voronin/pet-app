@@ -129,15 +129,18 @@ export class FamilyService {
     if (toJoin.some((p) => p.memberCount >= this.memberLimit))
       throw new FamilyError('member_limit');
 
-    const accepted = await this.repo.acceptInvite({
+    // The check above gives a quick answer; the repository re-checks under a lock (QA #50).
+    const result = await this.repo.acceptInvite({
       inviteId: invite.id,
       userId,
       role: invite.role,
       petIds: toJoin.map((p) => p.id),
       invitedBy: invite.createdBy,
+      memberLimit: this.memberLimit,
       now: this.clock(),
     });
-    if (!accepted) throw new FamilyError('invite_used');
+    if (result === 'full') throw new FamilyError('member_limit');
+    if (result === 'used') throw new FamilyError('invite_used');
     return { petIds };
   }
 
