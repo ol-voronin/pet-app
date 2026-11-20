@@ -1,20 +1,24 @@
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddPetEmpty } from '@/features/pets/components/AddPetEmpty';
-import { PetsHome } from '@/features/pets/components/PetsHome';
+import { PetsHome, PetsHomeSkeleton } from '@/features/pets/components/PetsHome';
 import { usePets } from '@/features/pets/hooks';
 import { Button, Text, useTheme } from '@/shared/ui';
 
 export default function PetsScreen() {
   const { t } = useTranslation();
-  const { colors, spacing } = useTheme();
+  const { colors, spacing, gutter } = useTheme();
+  const insets = useSafeAreaInsets();
   const pets = usePets();
+  // The home draws its own large title (design «UI 3 · Дім»), so the tab has no header bar.
+  const top = { paddingTop: insets.top + spacing.lg, paddingBottom: spacing.xxl };
 
   if (pets.isPending) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.accent} />
+      <View style={[{ flex: 1, backgroundColor: colors.background }, top]}>
+        <PetsHomeSkeleton />
       </View>
     );
   }
@@ -22,7 +26,7 @@ export default function PetsScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.xl, gap: spacing.xl }}
+      contentContainerStyle={top}
       refreshControl={
         <RefreshControl
           refreshing={pets.isRefetching}
@@ -32,7 +36,7 @@ export default function PetsScreen() {
       }
     >
       {pets.isError ? (
-        <View style={{ gap: spacing.lg, paddingTop: spacing.xxl }}>
+        <View style={{ gap: spacing.lg, paddingTop: spacing.xxl, paddingHorizontal: gutter }}>
           <Text color="textMuted">{t('pets.home.loadError')}</Text>
           <Button
             variant="secondary"
@@ -41,18 +45,16 @@ export default function PetsScreen() {
           />
         </View>
       ) : pets.data.length === 0 ? (
-        <AddPetEmpty
-          onLater={() => {
-            router.navigate('/');
-          }}
-        />
+        <View style={{ paddingHorizontal: gutter }}>
+          <AddPetEmpty
+            onLater={() => {
+              router.navigate('/');
+            }}
+          />
+        </View>
       ) : (
         <PetsHome pets={pets.data} />
       )}
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});
