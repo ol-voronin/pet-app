@@ -97,7 +97,9 @@
       "deleteBody": "The pet will disappear from the list for everyone who has access to it.",
       "viewerNote": "You have view-only access.",
       "notFound": "Pet not found",
-      "loadError": "Could not load. Check your connection and try again"
+      "loadError": "Could not load. Check your connection and try again",
+      "born": "Born",
+      "back": "Back"
     },
     "form": {
       "titleNew": "New pet",

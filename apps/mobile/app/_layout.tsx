@@ -64,7 +64,8 @@ export default function RootLayout() {
           <Stack.Screen name="pets/new" options={petScreen} />
           {/* Full-screen map with its own close button (design canvas «6а»). */}
           <Stack.Screen name="places/new" options={{ headerShown: false }} />
-          <Stack.Screen name="pets/[petId]/index" options={petScreen} />
+          {/* Draws its own top bar (design canvas «UI 3 · Медкартка улюбленця»). */}
+          <Stack.Screen name="pets/[petId]/index" options={{ headerShown: false }} />
           <Stack.Screen name="pets/[petId]/edit" options={petScreen} />
           <Stack.Screen name="invite/new" options={petScreen} />
           <Stack.Screen name="invite/enter" options={petScreen} />

@@ -32,7 +32,9 @@ export function PetMembersCard({ petId, isOwner }: { petId: string; isOwner: boo
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text variant="heading">{t('family.members.title')}</Text>
+      <Text variant="section" accessibilityRole="header">
+        {t('family.members.title')}
+      </Text>
       <Card style={styles.card}>
         {people.map((person, index) => {
           const who = person.name ?? person.phone ?? t('family.accept.someone');
@@ -74,7 +76,7 @@ export function PetMembersCard({ petId, isOwner }: { petId: string; isOwner: boo
       ) : null}
       {isOwner && !full ? (
         <Button
-          variant="secondary"
+          variant="outline"
           title={t('family.members.invite')}
           onPress={() => {
             router.push({ pathname: '/invite/new', params: { petId } });
