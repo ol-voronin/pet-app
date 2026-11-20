@@ -188,12 +188,26 @@ export const healthRecordVersionSchema = z
   })
   .meta({ id: 'HealthRecordVersion' });
 
+export const healthRecordListSchema = z
+  .object({ records: z.array(healthRecordSchema) })
+  .meta({ id: 'HealthRecordList' });
+
+export const healthRecordVersionListSchema = z
+  .object({ versions: z.array(healthRecordVersionSchema) })
+  .meta({ id: 'HealthRecordVersionList' });
+
+export const healthRecordParamsSchema = z.object({ petId: z.uuid(), recordId: z.uuid() });
+
+/** The whole history is always returned: it is never cut by plan or by age. */
+export const healthRecordListQuerySchema = z.object({ type: healthRecordTypeSchema.optional() });
+
 export type HealthRecordType = z.infer<typeof healthRecordTypeSchema>;
 export type HealthRecordSource = z.infer<typeof healthRecordSourceSchema>;
 export type ApiHealthRecord = z.infer<typeof healthRecordSchema>;
 export type CreateHealthRecordBody = z.infer<typeof createHealthRecordBodySchema>;
 export type UpdateHealthRecordBody = z.infer<typeof updateHealthRecordBodySchema>;
 export type ApiHealthRecordVersion = z.infer<typeof healthRecordVersionSchema>;
+export type HealthRecordListQuery = z.infer<typeof healthRecordListQuerySchema>;
 export type HealthRecordDetails = {
   [T in HealthRecordType]: z.infer<(typeof healthRecordDetailsSchemas)[T]>;
 };

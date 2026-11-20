@@ -36,7 +36,8 @@
 | Онбординг: после первого входа без питомцев открывается «Додайте улюбленця»; «Пізніше» ведёт на карту, экран больше не показывается (флаг на устройстве, по пользователю) | `apps/mobile/src/features/onboarding`, `apps/mobile/app/welcome.tsx` | #32 |
 | Семейный доступ: приглашение по ссылке на 72 часа (одно — на нескольких питомцев), роли editor / viewer, лимит Free 2 участника, принятие по ссылке или вставкой кода, список участников и отзыв доступа | `apps/api/src/modules/family`, `apps/mobile/src/features/family`, `apps/mobile/app/invite` | #34 |
 | Деплой API на Vercel (staging): работает, проверены `/health`, вход с `000000`, питомцы | `apps/api` | #14, #24 |
-| Медкарта, схема: таблицы `health_records` и `health_record_versions` (7 типов записей, `source`, версии, мягкое удаление), zod-схемы записи и `details` по типам. Роутов и экранов пока нет (#44) | `packages/db/src/schema/health-records.ts`, `packages/shared/src/health-records` | #43 |
+| Медкарта, схема: таблицы `health_records` и `health_record_versions` (7 типов записей, `source`, версии, мягкое удаление), zod-схемы записи и `details` по типам | `packages/db/src/schema/health-records.ts`, `packages/shared/src/health-records` | #43 |
+| Медкарта, API: `/pets/:petId/health-records` — список (фильтр по типу, без лимитов по тарифу), создание, правка с новой версией, мягкое удаление, история правок; owner и editor пишут, viewer читает; две одновременные правки — вторая получает 409. Экранов пока нет | `apps/api/src/modules/health-records` | #44 |
 | Точки карты: таблица `places` (PostGIS), импорт из OpenStreetMap (`pnpm -F api osm:import`), еженедельный workflow `OSM import` | `apps/api/src/modules/places/osm`, `packages/db/src/schema/places.ts` | #40 |
 | Админка точек: Directus в `docker-compose` (выключен, пока владелец не включит), роль БД только на `places`, скрипт настройки формы, видов и роли «Модератор» | `deploy/directus`, `deploy/docker-compose.yml` | #48 |
 | API карты: точки по области, список по расстоянию, карточка, поиск по названию с опечатками и неверной раскладкой, поиск по адресу через Photon | `apps/api/src/modules/places`, `packages/shared/src/places` | #53 |
@@ -46,7 +47,7 @@
 | Хранилище файлов: политика (типы, 20 МБ), ключи объектов, подписанные ссылки S3, конфиг `S3_*`. Роутов пока нет — появятся с CRUD питомцев | `apps/api/src/modules/storage`, `packages/shared/src/files` | #20 |
 | Питомцы API: `/pets` CRUD, фото в два шага (подписанная ссылка → подтверждение), роли owner / editor / viewer, мягкое удаление | `apps/api/src/modules/pets`, `packages/shared/src/pets` | #21 |
 
-Тестов: 346 (api 148, shared 45, db 22, mobile 131). Авторизация и питомцы проверены вживую на Neon `dev`.
+Тестов: 368 (api 170, shared 45, db 22, mobile 131). Авторизация и питомцы проверены вживую на Neon `dev`.
 Сценарий «собака Бадді, коты Манго и Дим, второй взрослый с ролью viewer» проверен на staging API: viewer видит
 питомцев, изменить и удалить не может (403). **Экраны приложения автор в рендере не видел** — проверка на телефоне за владельцем.
 В карточке и форме питомца нет веса: это медзапись (`docs/DATA_MODEL.md`), появится с медкартой на Этапе 2.

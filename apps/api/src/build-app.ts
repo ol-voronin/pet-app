@@ -11,6 +11,8 @@ import { authModule } from './modules/auth/index.js';
 import type { AuthService } from './modules/auth/service.js';
 import { familyModule, inviteLandingModule } from './modules/family/index.js';
 import type { FamilyService } from './modules/family/service.js';
+import { healthRecordsModule } from './modules/health-records/index.js';
+import type { HealthRecordsService } from './modules/health-records/service.js';
 import { healthModule } from './modules/health/index.js';
 import { petsModule } from './modules/pets/index.js';
 import type { PetsService } from './modules/pets/service.js';
@@ -25,6 +27,8 @@ export interface AppOptions {
   auth?: AuthService;
   /** Pets routes; need `auth` for the signed-in user. */
   pets?: PetsService;
+  /** Medical records of a pet; needs `auth`. */
+  healthRecords?: HealthRecordsService;
   /** Family access: invites and members; needs `auth`. */
   family?: FamilyService;
   /** Map places and address search; needs `auth`. */
@@ -77,6 +81,9 @@ export async function configureApp(app: App, opts: AppOptions) {
   if (opts.auth) await app.register(authModule, { service: opts.auth });
   if (opts.auth && opts.pets) {
     await app.register(petsModule, { service: opts.pets, auth: opts.auth });
+  }
+  if (opts.auth && opts.healthRecords) {
+    await app.register(healthRecordsModule, { service: opts.healthRecords, auth: opts.auth });
   }
   if (opts.auth && opts.places) {
     await app.register(placesModule, { service: opts.places, auth: opts.auth });
