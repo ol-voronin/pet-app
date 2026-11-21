@@ -53,6 +53,12 @@ The same race can be run against Neon `dev` (creates and deletes its own rows):
 DATABASE_URL=… pnpm -F api check:family-limit
 ```
 
+The medical card API end to end on a running staging server (`OTP_FIXED_CODE` set): owner, editor, viewer and a
+stranger, versions, a no-op edit, five parallel edits, soft delete. Signs in fresh test phones, deletes its pets:
+```bash
+API_URL=https://pet.195-201-110-152.sslip.io pnpm -F api check:health-records
+```
+
 ## Repository tests on Postgres
 `src/modules/**/drizzle-repo.db.test.ts` run every `Drizzle*Repo` against a real PostgreSQL 17 + PostGIS 3.5
 (ADR-0012). They use the production path — `createDb()`, drizzle `neon-http`, `db.batch` — and only the HTTP hop to
