@@ -100,7 +100,8 @@ export interface paths {
         get: operations["getMe"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete the current account after OTP confirmation on the user phone */
+        delete: operations["deleteMe"];
         options?: never;
         head?: never;
         patch?: never;
@@ -485,6 +486,11 @@ export interface components {
         };
         RefreshBodyInput: {
             refreshToken: string;
+        };
+        DeleteAccountBodyInput: {
+            /** Format: uuid */
+            challengeId: string;
+            code: string;
         };
         ErrorResponseInput: {
             error: string;
@@ -918,6 +924,11 @@ export interface components {
         };
         RefreshBody: {
             refreshToken: string;
+        };
+        DeleteAccountBody: {
+            /** Format: uuid */
+            challengeId: string;
+            code: string;
         };
         ErrorResponse: {
             error: string;
@@ -1586,6 +1597,73 @@ export interface operations {
             };
             /** @description Default Response */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountBodyInput"];
+            };
+        };
+        responses: {
+            /** @description Default Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default Response */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Default Response */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

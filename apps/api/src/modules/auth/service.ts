@@ -106,12 +106,36 @@ export class AuthService {
     deviceName?: string | undefined;
   }): Promise<AuthTokens> {
     const now = this.clock();
-    const challenge = await this.repo.getChallenge(input.challengeId);
+    const challenge = await this.verifyChallenge(input.challengeId, input.code, now);
+    const { user, isNew } = await this.repo.findOrCreateUserByPhone(challenge.phone, now);
+    return this.issueTokens(user, randomUUID(), input.deviceName ?? null, now, isNew);
+  }
+
+  /** Soft-deletes the user after OTP confirmation on their own phone number. */
+  async deleteAccount(userId: string, input: { challengeId: string; code: string }): Promise<void> {
+    const now = this.clock();
+    const user = await this.repo.getUser(userId);
+    if (!user) throw new AuthError('unauthorized');
+    if (!user.phone) throw new AuthError('phone_required');
+    await this.verifyChallenge(input.challengeId, input.code, now, user.phone);
+    await this.repo.deleteAccount(userId, now);
+  }
+
+  private async verifyChallenge(
+    challengeId: string,
+    code: string,
+    now: Date,
+    expectedPhone?: string,
+  ) {
+    const challenge = await this.repo.getChallenge(challengeId);
     if (!challenge || challenge.consumedAt) throw new AuthError('challenge_not_found');
+    if (expectedPhone && challenge.phone !== expectedPhone) {
+      throw new AuthError('challenge_not_found');
+    }
     if (challenge.expiresAt <= now) throw new AuthError('code_expired');
     if (challenge.attempts >= this.policy.maxAttempts) throw new AuthError('too_many_attempts');
 
-    if (!safeEqual(challenge.codeHash, this.codeHash(challenge.phone, input.code))) {
+    if (!safeEqual(challenge.codeHash, this.codeHash(challenge.phone, code))) {
       const attemptsAfter = challenge.attempts + 1; // read before the repo may mutate the record
       await this.repo.incrementAttempts(challenge.id);
       throw new AuthError(
@@ -119,11 +143,10 @@ export class AuthService {
       );
     }
     // Atomic consume: a parallel verify of the same challenge loses.
-    if (!(await this.repo.consumeChallenge(challenge.id, now)))
+    if (!(await this.repo.consumeChallenge(challenge.id, now))) {
       throw new AuthError('challenge_not_found');
-
-    const { user, isNew } = await this.repo.findOrCreateUserByPhone(challenge.phone, now);
-    return this.issueTokens(user, randomUUID(), input.deviceName ?? null, now, isNew);
+    }
+    return challenge;
   }
 
   async refresh(refreshToken: string): Promise<AuthTokens> {

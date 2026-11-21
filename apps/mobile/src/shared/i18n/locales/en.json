@@ -201,7 +201,18 @@
   "profile": {
     "phone": "Phone",
     "signOut": "Sign out",
-    "haveInvite": "I have an invite"
+    "haveInvite": "I have an invite",
+    "deleteAccount": "Delete account"
+  },
+  "deleteAccount": {
+    "title": "Delete account",
+    "warningTitle": "What happens after deletion",
+    "consequenceProfile": "Your profile will be deleted, all sessions will end, and your phone number will be freed for a new registration.",
+    "consequencePetsDelete": "Pets where you are the only owner or that only have viewers will be deleted.",
+    "consequencePetsTransfer": "If a pet has an editor, ownership will transfer to them.",
+    "sendCode": "Send confirmation code",
+    "codeSubtitle": "Enter the code sent to {{phone}} to confirm account deletion.",
+    "confirm": "Confirm deletion"
   },
   "common": {
     "close": "Close",
