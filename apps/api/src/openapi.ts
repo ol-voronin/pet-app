@@ -4,6 +4,8 @@ import { LogOtpSender } from './modules/auth/otp-sender.js';
 import { AuthService } from './modules/auth/service.js';
 import { MemoryFamilyRepo } from './modules/family/memory-repo.js';
 import { FamilyService } from './modules/family/service.js';
+import { MemoryHealthRecordsRepo } from './modules/health-records/memory-repo.js';
+import { HealthRecordsService } from './modules/health-records/service.js';
 import { MemoryPetsRepo } from './modules/pets/memory-repo.js';
 import { PetsService } from './modules/pets/service.js';
 
@@ -17,12 +19,16 @@ export async function generateOpenApi(): Promise<string> {
   const secret = 'openapi-export-only-secret-0000000000';
   const auth = new AuthService({ repo: authRepo, sender: new LogOtpSender(), secret });
   const pets = new PetsService({ repo: petsRepo, storage: null });
+  const healthRecords = new HealthRecordsService({
+    repo: new MemoryHealthRecordsRepo(),
+    pets: petsRepo,
+  });
   const family = new FamilyService({ repo: new MemoryFamilyRepo(petsRepo, authRepo), secret });
   const places = new PlacesService({
     repo: new MemoryPlacesRepo(),
     geocoder: { search: () => Promise.resolve([]) },
   });
-  const app = await buildApp({ version: '0.0.0', auth, pets, family, places });
+  const app = await buildApp({ version: '0.0.0', auth, pets, healthRecords, family, places });
   await app.ready();
   const spec = app.swagger();
   await app.close();
