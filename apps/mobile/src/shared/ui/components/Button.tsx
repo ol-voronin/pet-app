@@ -71,7 +71,14 @@ export function Button({
               minHeight: height,
               borderRadius: radius.pill,
               paddingHorizontal: small ? spacing.lg : spacing.xl,
-              backgroundColor: bg ? colors[bg] : pressed ? colors.surfaceMuted : 'transparent',
+              // Held text buttons get a pale fill: green under green text (4.7:1), beige under the rest.
+              backgroundColor: bg
+                ? colors[bg]
+                : pressed
+                  ? variant === 'ghost'
+                    ? colors.primarySoft
+                    : colors.surfaceMuted
+                  : 'transparent',
             },
             edge && {
               // Press = the button sinks onto its edge.

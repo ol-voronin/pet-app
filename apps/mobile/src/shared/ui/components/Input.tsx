@@ -14,7 +14,9 @@ export interface InputProps extends TextInputProps {
 export function Input({ ref, label, helper, error, onFocus, onBlur, style, ...rest }: InputProps) {
   const { colors, radius, spacing, typography, sizes } = useTheme();
   const [focused, setFocused] = useState(false);
-  const borderColor = error ? colors.danger : focused ? colors.primary : colors.border;
+  // Focus = a thicker dark-green ring. Lime on white is 1.35:1 and the eye misses it outdoors (#93).
+  const borderColor = error ? colors.danger : focused ? colors.focusRing : colors.border;
+  const borderWidth = focused || error ? 2 : 1;
 
   return (
     <View style={{ gap: spacing.xs }}>
@@ -43,9 +45,11 @@ export function Input({ ref, label, helper, error, onFocus, onBlur, style, ...re
             color: colors.text,
             backgroundColor: colors.surface,
             borderColor,
+            borderWidth,
             borderRadius: radius.input,
             minHeight: sizes.buttonPrimary,
-            paddingHorizontal: spacing.lg,
+            // The thicker ring grows inwards: the text does not jump when the field gets focus.
+            paddingHorizontal: spacing.lg - (borderWidth - 1),
           },
           style,
         ]}
