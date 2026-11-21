@@ -90,6 +90,19 @@ describe('DrizzlePlacesRepo on Postgres + PostGIS', () => {
     expect((await repo.byId(viewer, visible))?.name).toBe('Видно');
   });
 
+  it('keeps a verified place visible when it vanished from OSM (#86)', async () => {
+    const checked = await place({
+      name: 'Перевірена клініка',
+      verifiedAt: now,
+      osmMissingSince: now,
+    });
+    await place({ name: 'Неперевірена', osmMissingSince: now });
+
+    expect((await repo.inBox(viewer, kharkiv, all, 100)).map((p) => p.id)).toEqual([checked]);
+    expect((await repo.nearby(viewer, centre, 1000, all, 100)).map((p) => p.id)).toEqual([checked]);
+    expect((await repo.byId(viewer, checked))?.name).toBe('Перевірена клініка');
+  });
+
   it('shows own markers to the author and their family only, public ones after approval', async () => {
     const [author, relative, stranger] = [viewer, await insertUser(db), await insertUser(db)];
     await insertPet(db, author, { members: [{ userId: relative, role: 'viewer' }] });

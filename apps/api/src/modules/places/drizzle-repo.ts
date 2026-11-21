@@ -1,5 +1,5 @@
 import { petMembers, pets, places, type Db } from '@pet-app/db';
-import { and, asc, eq, gte, inArray, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, isNotNull, isNull, lte, or, sql, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { MIN_SIMILARITY } from './search-text.js';
 import type {
@@ -62,7 +62,9 @@ export class DrizzlePlacesRepo implements PlacesRepo {
         and(
           eq(places.visibility, 'public'),
           eq(places.moderationStatus, 'approved'),
-          isNull(places.osmMissingSince),
+          // Gone from OSM hides a point only while nobody checked it: a verified one stays until a person decides
+          // in the admin panel («Зникли з OSM») — the object is often just redrawn under a new OSM id (#86).
+          or(isNull(places.osmMissingSince), isNotNull(places.verifiedAt)),
         ),
         and(
           eq(places.source, 'user'),

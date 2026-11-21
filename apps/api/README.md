@@ -101,8 +101,11 @@ DATABASE_URL=… pnpm -F api osm:import
 Other modes: `--bbox=south,west,north,east` (partial run), `--from-file=overpass.json`, `--dry-run`
 (fetch and count, write nothing), `--save=file.json` (keep the raw answer). `OVERPASS_URL` overrides the servers.
 
+Servers: `overpass-api.de`, `overpass.private.coffee`, `overpass.kumi.systems` — none in Russia (#86).
+
 Rules: an unverified point is refreshed from OSM; a point a person verified (`verified_at`) is never
-overwritten — only its `osm_tags` snapshot is; a point that left OSM gets `osm_missing_since` and is kept;
+overwritten — only its `osm_tags` snapshot is; a point that left OSM gets `osm_missing_since` and is kept —
+hidden from the map while unverified, still shown when verified (a person decides in «Зникли з OSM», #86);
 if a full run returns under 70% of the points shown now, nothing is hidden (a broken answer, not a mass closure).
 
 The `OSM import` workflow runs it every Monday. It writes only when the repository secret
