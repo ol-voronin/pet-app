@@ -46,8 +46,9 @@
 | Сервер: Docker-образ API, `docker-compose` (API + Caddy + Redis), деплой из `main` по SSH; Sentry в api и mobile (выключен без DSN) | `apps/api/Dockerfile`, `deploy/`, `.github/workflows/deploy.yml`, ADR-0009 | #38 |
 | Хранилище файлов: политика (типы, 20 МБ), ключи объектов, подписанные ссылки S3, конфиг `S3_*`. Роутов пока нет — появятся с CRUD питомцев | `apps/api/src/modules/storage`, `packages/shared/src/files` | #20 |
 | Питомцы API: `/pets` CRUD, фото в два шага (подписанная ссылка → подтверждение), роли owner / editor / viewer, мягкое удаление | `apps/api/src/modules/pets`, `packages/shared/src/pets` | #21 |
+| Тесты репозиториев на настоящем Postgres + PostGIS: `pnpm test:db`, отдельная job в CI; боевой драйвер `neon-http`, подменён только транспорт | `apps/api/src/modules/**/drizzle-repo.db.test.ts`, `packages/db-testing`, ADR-0012 | #62 |
 
-Тестов: 368 (api 170, shared 45, db 22, mobile 131). Авторизация и питомцы проверены вживую на Neon `dev`.
+Тестов: 375 (api 170, shared 45, db 22, db-testing 7, mobile 131) и 45 на настоящем Postgres (`pnpm test:db`). Авторизация и питомцы проверены вживую на Neon `dev`.
 Сценарий «собака Бадді, коты Манго и Дим, второй взрослый с ролью viewer» проверен на staging API: viewer видит
 питомцев, изменить и удалить не может (403). **Экраны приложения автор в рендере не видел** — проверка на телефоне за владельцем.
 В карточке и форме питомца нет веса: это медзапись (`docs/DATA_MODEL.md`), появится с медкартой на Этапе 2.
@@ -134,6 +135,7 @@
   ≈ 180 МБ), поиск по адресу — Photon через наш API.
 - 0010 карта в WebView — принято: MapLibre GL JS в WebView (работает в Expo Go), тайлы OpenFreeMap до своего сервера.
 - 0011 шрифт, отклик и анимации — принято: Geologica, `PressableScale`, `expo-haptics`, панель карты на `Animated` + `PanResponder` (без Reanimated).
+- 0012 тесты репозиториев на Postgres — принято: боевой драйвер `neon-http` с транспортом через `pg`, база в контейнере.
 - 0006 хранилище файлов — принято: **Neon Object Storage** (в проекте `pet-app`, на ветке `dev` включено; 5 ГБ бесплатно,
   дальше $0,023 за ГБ). Запасной — Cloudflare R2. Код против S3 API, провайдер — настройкой. Нужно к фото питомцев.
 - Открыты: 0004 провайдер OCR — до Этапа 3; 0007 рендер аватара — до Этапа 5b.

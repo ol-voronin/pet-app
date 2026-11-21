@@ -33,3 +33,37 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+
+  db-tests:
+    name: repositories on Postgres
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      # Same major versions as Neon: PostgreSQL 17 + PostGIS 3.5.
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # A throwaway container: the password is not a secret. Tests refuse any host but localhost.
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      # Creates a database, applies packages/db/migrations and runs every `*.db.test.ts` (ADR-0012).
+      - run: pnpm test:db
