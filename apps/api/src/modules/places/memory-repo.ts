@@ -40,8 +40,11 @@ export class MemoryPlacesRepo implements PlacesRepo {
     const family = this.familyOf(viewerId);
     return this.rows.filter((p) => {
       if (p.deletedAt) return false;
+      // Gone from OSM hides only unverified points (see DrizzlePlacesRepo).
       const forEveryone =
-        p.visibility === 'public' && p.moderationStatus === 'approved' && !p.osmMissingSince;
+        p.visibility === 'public' &&
+        p.moderationStatus === 'approved' &&
+        (!p.osmMissingSince || p.verifiedAt !== null);
       const ofFamily = p.source === 'user' && p.createdBy !== null && family.has(p.createdBy);
       return (
         (forEveryone || ofFamily) &&

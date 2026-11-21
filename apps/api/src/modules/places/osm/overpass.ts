@@ -1,10 +1,13 @@
 import type { OsmElement } from './mapping.js';
 
-/** Public Overpass servers, tried in order. Override with `OVERPASS_URL` (comma-separated). */
+/**
+ * Public Overpass servers, tried in order. Override with `OVERPASS_URL` (comma-separated).
+ * Only servers outside Russia: the data feeds a Ukrainian app, and Mail.ru services are sanctioned in Ukraine (#86).
+ */
 export const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
 ];
 
 const USER_AGENT = 'osm-places-import/1.0';
