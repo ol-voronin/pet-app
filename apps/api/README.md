@@ -47,10 +47,24 @@ Environment variables on Vercel: `APP_ENV=staging`, `DATABASE_URL` (Neon `dev` b
 ## Family limit check (live)
 The Free member limit is enforced in the database transaction that adds a member: a per-pet advisory lock, then
 the insert only while every pet has room (`src/modules/family/drizzle-repo.ts`, QA #50). Unit tests use the in-memory
-repository, so the SQL itself is checked by a live script against Neon `dev` (creates and deletes its own rows):
+repository; the SQL itself is covered by the repository tests below (two simultaneous acceptances, ten rounds).
+The same race can be run against Neon `dev` (creates and deletes its own rows):
 ```bash
 DATABASE_URL=… pnpm -F api check:family-limit
 ```
+
+## Repository tests on Postgres
+`src/modules/**/drizzle-repo.db.test.ts` run every `Drizzle*Repo` against a real PostgreSQL 17 + PostGIS 3.5
+(ADR-0012). They use the production path — `createDb()`, drizzle `neon-http`, `db.batch` — and only the HTTP hop to
+Neon is replaced by a local connection (`packages/db-testing`). `pnpm test` does not run them and needs no database.
+```bash
+docker run -d --name pet-app-test-db -e POSTGRES_PASSWORD=postgres -p 127.0.0.1:5432:5432 postgis/postgis:17-3.5
+TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres pnpm test:db
+```
+Each run creates its own database `pet_app_test_…`, applies `packages/db/migrations` and drops it at the end, so
+other databases on that server are not touched. Only `localhost` is accepted: the tests cannot be pointed at Neon.
+In CI this is the job "repositories on Postgres". A new query in a `drizzle-repo.ts` gets a test here in the same PR.
+Not covered: limits and timeouts of Neon's own HTTP proxy — what depends on them is still checked on Neon `dev`.
 
 ## Map API
 `src/modules/places`: routes behind sign-in. A person gets public, approved, not hidden places and their family's own markers.

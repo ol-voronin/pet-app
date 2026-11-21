@@ -5,3 +5,8 @@ allowBuilds:
   esbuild: true
   # Only uploads source maps to Sentry during release builds; its install script downloads a binary we do not need yet.
   '@sentry/cli': false
+overrides:
+  # `pg` is used only by packages/db-testing. Without this pnpm hands it to drizzle-orm as an optional
+  # peer and it ends up in the production API image (ADR-0012).
+  'drizzle-orm>pg': '-'
+  'drizzle-orm>@types/pg': '-'

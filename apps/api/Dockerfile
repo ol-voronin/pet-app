@@ -12,6 +12,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/db/package.json packages/db/
+# Test-only workspace package (a devDependency of api): pnpm needs its manifest to install.
+COPY packages/db-testing/package.json packages/db-testing/
 RUN pnpm install --frozen-lockfile --filter "api..."
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
