@@ -13,7 +13,8 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "gen:api": "pnpm -F api openapi:export && pnpm -F @pet-app/shared generate"
+    "gen:api": "pnpm -F api openapi:export && pnpm -F @pet-app/shared generate",
+    "agent:setup": "node tools/fix-pnpm-stub.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
