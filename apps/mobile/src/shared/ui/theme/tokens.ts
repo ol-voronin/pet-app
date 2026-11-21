@@ -18,6 +18,8 @@ export interface ColorTokens {
   primaryEdge: string;
   /** Small accent text / links. */
   accent: string;
+  /** Border of a focused field: ≥ 3:1 to its fill and clearly unlike `border` (WCAG 1.4.11, #93). */
+  focusRing: string;
   inverse: string;
   /** Bottom edge under dark pills. */
   inverseEdge: string;
@@ -43,6 +45,7 @@ export const lightColors: ColorTokens = {
   primarySoft: palette.brandTint,
   primaryEdge: palette.forest,
   accent: palette.forest,
+  focusRing: palette.forest,
   inverse: palette.ink,
   inverseEdge: palette.inkEdge,
   warningSoft: palette.amberTint,
