@@ -3,7 +3,9 @@ export { Button, type ButtonProps, type ButtonVariant } from './components/Butto
 export { Card } from './components/Card';
 export { Chip, type ChipProps } from './components/Chip';
 export { Icon, type IconName, type IconProps } from './components/Icon';
+export { IconPlate } from './components/IconPlate';
 export { Input, type InputProps } from './components/Input';
+export { LargeHeader } from './components/LargeHeader';
 export { ListItem, type ListItemProps } from './components/ListItem';
 export { Segmented, type SegmentedProps } from './components/Segmented';
 export { Sheet, type SheetProps } from './components/Sheet';

@@ -1,10 +1,9 @@
 import type { PlaceListItem } from '@pet-app/shared';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Text, useTheme } from '@/shared/ui';
+import { IconPlate, Text, useTheme } from '@/shared/ui';
 import { categoryIcon, categoryKey } from '../labels';
 import { formatDistance } from '../logic';
-import { IconPlate } from './IconPlate';
 
 /** «1,6 км» / «320 м», translated. */
 export function useDistanceLabel() {

@@ -17,6 +17,10 @@ const glyphs = {
   chevron: 'chevron-right',
   back: 'chevron-left',
   edit: 'pencil-outline',
+  invite: 'account-plus-outline',
+  signOut: 'logout',
+  phoneDevice: 'cellphone',
+  kit: 'palette-outline',
   checked: 'checkbox-marked-circle',
   unchecked: 'checkbox-blank-circle-outline',
   // Map.
