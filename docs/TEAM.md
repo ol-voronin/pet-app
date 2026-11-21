@@ -117,6 +117,10 @@ PR ручной сессии, который ещё открыт, ревьюер
   `gh api repos/ol-voronin/pet-app/...` (issues, pulls, labels, comments, `pulls/N/merge`).
 - Каждый запуск начинается как в `CLAUDE.md`: `git fetch origin main`, `HANDOFF.md`, `docs/LESSONS.md`, затем этот
   файл и файл своей роли.
+- Облачная сессия: после `pnpm install` один раз запусти `pnpm agent:setup`, иначе `pnpm typecheck`, `pnpm lint` и
+  `pnpm test` падают с `Exec format error (os error 8)`. Это не сломанный `main`: pnpm в сессии старее и скачивает
+  версию из `packageManager` без шага установки, а turbo не может запустить такую заглушку (#51). Запасной путь —
+  `./node_modules/.bin/turbo run typecheck` (то же для `lint` и `test`). На Mac и в CI команда ничего не меняет.
 - Один запуск — одна единица работы: одна задача у разработчика, все открытые PR у ревьюера. Нет работы — заверши
   запуск сразу.
 
