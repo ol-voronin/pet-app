@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Ready for a merge queue: checks then run on the PR merged with the latest main (#84).
+  merge_group:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -33,6 +35,16 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+      # The journal order is a unit test in packages/db (migrations.test.ts). Here: the schema and the last snapshot
+      # agree — `generate` must find nothing to write, or a migration is missing from the PR (#84).
+      - name: Migrations match the schema
+        run: |
+          pnpm -F @pet-app/db generate
+          if [ -n "$(git status --porcelain packages/db/migrations)" ]; then
+            git status --porcelain packages/db/migrations
+            echo "::error::The schema changed without a migration. Run pnpm -F db generate and commit the result."
+            exit 1
+          fi
 
   db-tests:
     name: repositories on Postgres
