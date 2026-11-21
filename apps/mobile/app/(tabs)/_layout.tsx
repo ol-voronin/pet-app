@@ -75,13 +75,14 @@ export default function TabsLayout() {
         name="pets"
         options={{ title: t('tabs.pets'), headerShown: false, tabBarIcon: tabIcon('pet') }}
       />
+      {/* Every tab draws its own large title (LargeHeader): no header bar, no title shown twice. */}
       <Tabs.Screen
         name="events"
-        options={{ title: t('tabs.events'), tabBarIcon: tabIcon('events') }}
+        options={{ title: t('tabs.events'), headerShown: false, tabBarIcon: tabIcon('events') }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ title: t('tabs.profile'), tabBarIcon: tabIcon('profile') }}
+        options={{ title: t('tabs.profile'), headerShown: false, tabBarIcon: tabIcon('profile') }}
       />
     </Tabs>
   );

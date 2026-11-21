@@ -7,6 +7,7 @@ import {
   Appear,
   Button,
   Icon,
+  LargeHeader,
   ListItem,
   PressableScale,
   Sheet,
@@ -159,38 +160,32 @@ export function PetsHome({ pets }: { pets: ApiPet[] }) {
 
 function HomeHeader({ subtitle, onAdd }: { subtitle: string | null; onAdd?: () => void }) {
   const { t } = useTranslation();
-  const { colors, spacing, gutter, sizes } = useTheme();
+  const { colors, sizes } = useTheme();
   return (
-    <View style={[styles.header, { paddingHorizontal: gutter, gap: spacing.md }]}>
-      <View style={styles.flex}>
-        <Text variant="title" accessibilityRole="header">
-          {t('tabs.pets')}
-        </Text>
-        {subtitle ? (
-          <Text variant="bodySmall" color="textMuted">
-            {subtitle}
-          </Text>
-        ) : null}
-      </View>
-      {onAdd ? (
-        <PressableScale
-          onPress={onAdd}
-          haptic="impact"
-          accessibilityRole="button"
-          accessibilityLabel={t('pets.home.menuA11y')}
-          style={[
-            styles.plus,
-            {
-              backgroundColor: colors.inverse,
-              borderBottomWidth: sizes.buttonPrimaryEdge,
-              borderBottomColor: colors.inverseEdge,
-            },
-          ]}
-        >
-          <Icon name="add" color="primary" />
-        </PressableScale>
-      ) : null}
-    </View>
+    <LargeHeader
+      title={t('tabs.pets')}
+      subtitle={subtitle}
+      action={
+        onAdd ? (
+          <PressableScale
+            onPress={onAdd}
+            haptic="impact"
+            accessibilityRole="button"
+            accessibilityLabel={t('pets.home.menuA11y')}
+            style={[
+              styles.plus,
+              {
+                backgroundColor: colors.inverse,
+                borderBottomWidth: sizes.buttonPrimaryEdge,
+                borderBottomColor: colors.inverseEdge,
+              },
+            ]}
+          >
+            <Icon name="add" color="primary" />
+          </PressableScale>
+        ) : null
+      }
+    />
   );
 }
 
@@ -261,7 +256,6 @@ const CARD_RADIUS = 20;
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center' },
   plus: {
     width: 52,
     height: 52,

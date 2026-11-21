@@ -201,7 +201,9 @@
   "profile": {
     "phone": "Phone",
     "signOut": "Sign out",
-    "haveInvite": "I have an invite"
+    "haveInvite": "I have an invite",
+    "noName": "No name yet",
+    "haveInviteHint": "Paste the link you were sent"
   },
   "common": {
     "close": "Close",

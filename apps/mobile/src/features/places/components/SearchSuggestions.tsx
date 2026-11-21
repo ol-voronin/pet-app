@@ -2,7 +2,7 @@ import type { GeocodeResult, PlaceListItem } from '@pet-app/shared';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { NetworkError } from '@/shared/api/http';
-import { Button, Card, Text, useTheme, type IconName } from '@/shared/ui';
+import { Button, Card, IconPlate, Text, useTheme, type IconName } from '@/shared/ui';
 import type { Point } from '../api';
 import { useGeocode, useSearchPlaces } from '../hooks';
 import { categoryIcon, categoryPluralKey, categoryWordsKey } from '../labels';
@@ -13,7 +13,6 @@ import {
   matchCategories,
   type FilterCategory,
 } from '../logic';
-import { IconPlate } from './IconPlate';
 import { PlaceRow } from './PlaceRow';
 
 const NO_FILTERS = { categories: [], open247: false } as const;
